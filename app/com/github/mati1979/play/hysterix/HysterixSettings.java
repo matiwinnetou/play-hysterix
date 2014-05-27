@@ -24,4 +24,32 @@ public class HysterixSettings {
         this.requestCacheEnabled = requestCacheEnabled;
     }
 
+    public static class Builder {
+
+        private HysterixSettings hysterixSettings;
+
+        private Builder() {
+            hysterixSettings = new HysterixSettings();
+        }
+
+        public Builder withFallbackEnabled(boolean fallbackEnabled) {
+            hysterixSettings.fallbackEnabled = fallbackEnabled;
+            return this;
+        }
+
+        public Builder withRequestCacheEnabled(boolean requestCacheEnabled) {
+            hysterixSettings.requestCacheEnabled = requestCacheEnabled;
+            return this;
+        }
+
+        public static Builder newBuilder() {
+            return new Builder();
+        }
+
+        public HysterixSettings build() {
+            return hysterixSettings;
+        }
+
+    }
+
 }

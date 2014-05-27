@@ -29,8 +29,12 @@ public class HysterixContext {
         return hysterixRequestLog;
     }
 
-    public HysterixContext create(final HysterixSettings hysterixSettings) {
+    public static HysterixContext create(final HysterixSettings hysterixSettings) {
         return new HysterixContext(new HysterixRequestCacheHolder(), hysterixSettings, new HysterixRequestLog());
+    }
+
+    public static HysterixContext empty() {
+        return new HysterixContext(new HysterixRequestCacheHolder(), new HysterixSettings(), new HysterixRequestLog());
     }
 
 }

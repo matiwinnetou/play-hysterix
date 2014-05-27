@@ -11,7 +11,7 @@ public class HysterixRequestCacheHolder {
 
     private Map<String, HysterixRequestCache> caches = Maps.newConcurrentMap();
 
-    public <T> HysterixRequestCache<T> getCache(final String key) {
+    public <T> HysterixRequestCache<T> getOrCreate(final String key) {
         final HysterixRequestCache requestCache = caches.getOrDefault(key, new HysterixRequestCache<T>());
 
         caches.putIfAbsent(key, requestCache);

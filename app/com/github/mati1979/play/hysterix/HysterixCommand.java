@@ -89,8 +89,8 @@ public abstract class HysterixCommand<T> {
 
     private Optional<F.Promise<T>> getFromCache() {
         if (isRequestCachingEnabled()) {
+            final HysterixRequestCache<T> cache = hysterixRequestCacheHolder.getOrCreate(getCommandKey());
             final String key = getCacheKey().get();
-            final HysterixRequestCache<T> cache = hysterixRequestCacheHolder.getCache(key);
             final Optional<T> possibleValue = cache.get(key);
             if (possibleValue.isPresent()) {
                 final T value = (T) possibleValue.get();
@@ -105,8 +105,9 @@ public abstract class HysterixCommand<T> {
     private boolean putToCache(final T t) {
         if (isRequestCachingEnabled()) {
             final String key = getCacheKey().get();
-            final HysterixRequestCache<T> cache = hysterixRequestCacheHolder.getCache(key);
+            final HysterixRequestCache<T> cache = hysterixRequestCacheHolder.getOrCreate(getCommandKey());
             cache.put(key, t);
+
             return true;
         }
 
