@@ -1,10 +1,13 @@
 organization := "pl.matisoft"
 
-name := "play-hysterix.play23"
+name := "play-hysterix"
 
-version := "0.1"
+version := "0.1.play23"
 
 scalaVersion := "2.10.4"
+
+libraryDependencies ++= Seq(
+)
 
 sonatypeSettings
 
