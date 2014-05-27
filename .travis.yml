@@ -3,4 +3,4 @@ jdk:
     - oraclejdk8
 script:
     - sbt compile
-    - sbt test  
+    - sbt test
