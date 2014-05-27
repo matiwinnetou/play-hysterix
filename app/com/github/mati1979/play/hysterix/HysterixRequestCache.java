@@ -5,9 +5,6 @@ import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Created by mati on 26/05/2014.
- */
 public class HysterixRequestCache<T> {
 
     private Map<String, T> cache = Maps.newConcurrentMap();

@@ -1,8 +1,5 @@
 package com.github.mati1979.play.hysterix;
 
-/**
- * Created by mszczap on 27.05.14.
- */
 public class HysterixContext {
 
     private HysterixRequestCacheHolder hysterixRequestCacheHolder;

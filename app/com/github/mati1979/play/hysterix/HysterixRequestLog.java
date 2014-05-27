@@ -7,9 +7,6 @@ import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by mati on 26/05/2014.
- */
 public class HysterixRequestLog {
 
     static final int MAX_STORAGE = 1000;

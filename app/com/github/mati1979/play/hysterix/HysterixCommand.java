@@ -12,9 +12,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * Created by mati on 26/05/2014.
- */
 public abstract class HysterixCommand<T> {
 
     private static final play.Logger.ALogger logger = play.Logger.of(HysterixCommand.class);
