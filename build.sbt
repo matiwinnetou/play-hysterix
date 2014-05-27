@@ -1,15 +1,10 @@
 organization := "pl.matisoft"
 
-name := "play-hysterix"
+name := "play-hysterix.play23"
 
 version := "0.1"
 
 scalaVersion := "2.10.4"
-
-libraryDependencies ++= Seq(
-  "com.google.guava" % "guava" % "16.0.1",
-  javaWs
-)
 
 sonatypeSettings
 

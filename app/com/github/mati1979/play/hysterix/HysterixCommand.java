@@ -17,6 +17,8 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public abstract class HysterixCommand<T> {
 
+    private static final play.Logger.ALogger logger = play.Logger.of("play.hysterix");
+
     protected final AtomicBoolean isExecutionComplete = new AtomicBoolean(false);
 
     protected List<HysterixEventType> executionEvents = Collections.synchronizedList(Lists.newArrayList());
@@ -103,17 +105,17 @@ public abstract class HysterixCommand<T> {
 
     private void onFailure(final Throwable t) {
         stopwatch.get().stop();
-        System.out.println("onFailure:" + t);
+        logger.debug("onFailure:" + t);
         executionEvents.add(HysterixEventType.FAILURE);
         executionComplete();
     }
 
     private T onRecover(final Throwable t) throws Throwable {
         onFailure(t);
-        System.out.println("onRecover:" + t);
+        logger.debug("onRecover:" + t);
 
         if (hysterixSettings.isFallbackEnabled()) {
-            System.out.println("onRecover - fallback enabled");
+            logger.debug("onRecover - fallback enabled");
             return getFallback().map(response -> onRecoverSuccess(response))
                     .orElseThrow(() -> onRecoverFailure(t));
         }
