@@ -1,3 +1,6 @@
+import sbt.Keys._
+import scala.Some
+
 organization := "pl.matisoft"
 
 name := "play-hysterix"
@@ -15,7 +18,12 @@ releaseSettings
 
 publishMavenStyle := true
 
-lazy val main = (project in file(".")).enablePlugins(PlayJava)
+val commonSettings = Seq(
+  javacOptions ++= Seq("-target", "1.8", "-source", "1.8"),
+  parallelExecution := true
+)
+
+lazy val main = (project in file(".")).settings(commonSettings:_*).enablePlugins(PlayJava)
 
 publishTo := {
   val nexus = "https://oss.sonatype.org/"
