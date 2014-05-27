@@ -29,10 +29,6 @@ public class HysterixContext {
     }
 
     public static HysterixContext create(final HysterixSettings hysterixSettings) {
-        final StackTraceElement[] stackTrace = new RuntimeException("").getStackTrace();
-        for (StackTraceElement stackTraceElement : stackTrace) {
-            logger.debug(stackTraceElement.getClassName() + ":" + stackTraceElement.getMethodName() + ":" + stackTraceElement.getLineNumber());
-        }
         logger.debug("create new HysterixContext:" + hysterixSettings);
         return new HysterixContext(new HysterixRequestCacheHolder(), hysterixSettings, new HysterixRequestLog());
     }
