@@ -1,8 +1,5 @@
 package com.github.mati1979.play.hysterix;
 
-/**
- * Created by mati on 26/05/2014.
- */
 public class HysterixSettings {
 
     private boolean fallbackEnabled = true;
