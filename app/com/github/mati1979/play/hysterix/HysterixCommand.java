@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public abstract class HysterixCommand<T> {
 
-    private static final play.Logger.ALogger logger = play.Logger.of("play.hysterix");
+    private static final play.Logger.ALogger logger = play.Logger.of(HysterixCommand.class);
 
     protected final AtomicBoolean isExecutionComplete = new AtomicBoolean(false);
 
@@ -27,18 +27,24 @@ public abstract class HysterixCommand<T> {
 
     protected final HysterixSettings hysterixSettings;
     protected final HysterixRequestLog hysterixRequestLog;
-    protected final HystrixRequestCache hystrixRequestCache;
+    protected final HysterixRequestCacheHolder hysterixRequestCacheHolder;
 
     //transform response into domain object, client is responsible to call web service
     //this method is used only if needed, execute will work out if the response can come from a cache
     protected abstract F.Promise<T> run();
 
-    protected HysterixCommand(final HystrixRequestCache hystrixRequestCache,
+    protected HysterixCommand(final HysterixRequestCacheHolder hysterixRequestCacheHolder,
                               final HysterixRequestLog hysterixRequestLog,
                               final HysterixSettings hysterixSettings) {
-        this.hystrixRequestCache = hystrixRequestCache;
+        this.hysterixRequestCacheHolder = hysterixRequestCacheHolder;
         this.hysterixSettings = hysterixSettings;
         this.hysterixRequestLog = hysterixRequestLog;
+    }
+
+    protected HysterixCommand(final HysterixContext context) {
+        this.hysterixRequestCacheHolder = context.getHysterixRequestCacheHolder();
+        this.hysterixSettings = context.getHysterixSettings();
+        this.hysterixRequestLog = context.getHysterixRequestLog();
     }
 
     public abstract String getCommandKey();
@@ -82,8 +88,10 @@ public abstract class HysterixCommand<T> {
     }
 
     private Optional<F.Promise<T>> getFromCache() {
-        if (hysterixSettings.isRequestCacheEnabled() && getCacheKey().isPresent()) {
-            final Optional<Object> possibleValue = hystrixRequestCache.get(getCacheKey().get());
+        if (isRequestCachingEnabled()) {
+            final String key = getCacheKey().get();
+            final HysterixRequestCache<T> cache = hysterixRequestCacheHolder.getCache(key);
+            final Optional<T> possibleValue = cache.get(key);
             if (possibleValue.isPresent()) {
                 final T value = (T) possibleValue.get();
                 executionEvents.add(HysterixEventType.RESPONSE_FROM_CACHE);
@@ -95,8 +103,10 @@ public abstract class HysterixCommand<T> {
     }
 
     private boolean putToCache(final T t) {
-        if (hysterixSettings.isRequestCacheEnabled() && getCacheKey().isPresent()) {
-            hystrixRequestCache.put(getCacheKey().get(), t);
+        if (isRequestCachingEnabled()) {
+            final String key = getCacheKey().get();
+            final HysterixRequestCache<T> cache = hysterixRequestCacheHolder.getCache(key);
+            cache.put(key, t);
             return true;
         }
 
@@ -137,6 +147,10 @@ public abstract class HysterixCommand<T> {
         executionEvents.add(HysterixEventType.FALLBACK_FAILURE);
 
         return t;
+    }
+
+    protected boolean isRequestCachingEnabled() {
+        return hysterixSettings.isRequestCacheEnabled() && getCacheKey().isPresent();
     }
 
     public Optional<T> getFallback() {

@@ -8,15 +8,15 @@ import java.util.Optional;
 /**
  * Created by mati on 26/05/2014.
  */
-public class HystrixRequestCache {
+public class HysterixRequestCache<T> {
 
-    private Map<String, Object> cache = Maps.newConcurrentMap();
+    private Map<String, T> cache = Maps.newConcurrentMap();
 
-    public Object put(final String cacheKey, Object value) {
-        return cache.putIfAbsent(cacheKey, value);
+    public void put(final String cacheKey, T value) {
+        cache.putIfAbsent(cacheKey, value);
     }
 
-    public Optional<Object> get(final String cacheKey) {
+    public Optional<T> get(final String cacheKey) {
         return Optional.ofNullable(cache.get(cacheKey));
     }
 
