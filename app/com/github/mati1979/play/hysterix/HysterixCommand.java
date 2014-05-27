@@ -71,6 +71,7 @@ public abstract class HysterixCommand<T> {
     }
 
     private T onSuccess(final T response) {
+        logger.debug("onSuccess..." + response.hashCode());
         stopwatch.get().stop();
         executionEvents.add(HysterixEventType.SUCCESS);
         putToCache(response);
@@ -85,10 +86,17 @@ public abstract class HysterixCommand<T> {
     }
 
     private Optional<F.Promise<T>> getFromCache() {
+        logger.debug("getting from cache...");
         if (isRequestCachingEnabled()) {
+            logger.debug("getFromCache-hysterixRequestCacheHolder:" + hysterixRequestCacheHolder.hashCode());
+            logger.debug("isRequestCachingEnabled:" + isRequestCachingEnabled());
+            logger.debug("getCommandKey:" + getCommandKey());
             final HysterixRequestCache<T> cache = hysterixRequestCacheHolder.getOrCreate(getCommandKey());
             final String key = getCacheKey().get();
+            logger.debug("cacheKey:" + key);
+            logger.debug("cacheSize:" + cache.size());
             final Optional<T> possibleValue = cache.get(key);
+            logger.debug("possibleValuePresent?:" + possibleValue.isPresent());
             if (possibleValue.isPresent()) {
                 final T value = (T) possibleValue.get();
                 executionEvents.add(HysterixEventType.RESPONSE_FROM_CACHE);
@@ -100,8 +108,14 @@ public abstract class HysterixCommand<T> {
     }
 
     private boolean putToCache(final T t) {
+        logger.debug("putting to cache...");
+
         if (isRequestCachingEnabled()) {
+            logger.debug("putToCache-hysterixRequestCacheHolder:" + hysterixRequestCacheHolder.hashCode());
             final String key = getCacheKey().get();
+            logger.debug("cacheKey:" + key);
+            logger.debug("getCommandKey:" + getCommandKey());
+
             final HysterixRequestCache<T> cache = hysterixRequestCacheHolder.getOrCreate(getCommandKey());
             cache.put(key, t);
 
@@ -112,15 +126,15 @@ public abstract class HysterixCommand<T> {
     }
 
     private void onFailure(final Throwable t) {
-        stopwatch.get().stop();
         logger.debug("onFailure:" + t);
+        stopwatch.get().stop();
         executionEvents.add(HysterixEventType.FAILURE);
         executionComplete();
     }
 
     private T onRecover(final Throwable t) throws Throwable {
         onFailure(t);
-        logger.debug("onRecover:" + t);
+        logger.debug("onRecover:" + t.getMessage());
 
         if (hysterixSettings.isFallbackEnabled()) {
             logger.debug("onRecover - fallback enabled");
@@ -134,6 +148,7 @@ public abstract class HysterixCommand<T> {
     private T onRecoverSuccess(final T t) {
         executionEvents.add(HysterixEventType.FALLBACK_SUCCESS);
         executionComplete();
+        putToCache(t);
         return t;
     }
 
