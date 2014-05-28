@@ -57,7 +57,7 @@ public class HysterixRequestLog {
                 StringBuilder displayString = new StringBuilder();
                 displayString.append(command.getCommandKey());
 
-                final List<HysterixEventType> events = new ArrayList<>(command.getExecutionEvents());
+                final List<HysterixEventType> events = new ArrayList<>(command.getMetadata().getExecutionEvents());
                 if (events.size() > 0) {
                     Collections.sort(events);
                     displayString.append(Arrays.toString(events.toArray()));
@@ -74,7 +74,7 @@ public class HysterixRequestLog {
                     aggregatedCommandsExecuted.put(display, 1L);
                 }
 
-                long executionTime = command.getExecutionTime(TimeUnit.MILLISECONDS);
+                long executionTime = command.getMetadata().getExecutionTime(TimeUnit.MILLISECONDS);
                 if (executionTime < 0) {
                     // do this so we don't create negative values or subtract values
                     executionTime = 0;

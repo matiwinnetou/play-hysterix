@@ -1,28 +1,18 @@
 package com.github.mati1979.play.hysterix;
 
-import com.google.common.base.Stopwatch;
-import com.google.common.collect.Lists;
 import play.libs.F;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class HysterixCommand<T> {
 
     private static final play.Logger.ALogger logger = play.Logger.of(HysterixCommand.class);
 
-    protected final AtomicBoolean isExecutionComplete = new AtomicBoolean(false);
-
-    protected List<HysterixEventType> executionEvents = Collections.synchronizedList(Lists.newArrayList());
-
-    private AtomicReference<Stopwatch> stopwatch = new AtomicReference<>(new Stopwatch());
-
     protected final AtomicReference<HysterixContext> hysterixContext;
+
+    protected HysterixResponseMetadata metadata = new HysterixResponseMetadata();
 
     //transform response into domain object, client is responsible to call web service
     //this method is used only if needed, execute will work out if the response can come from a cache
@@ -42,10 +32,18 @@ public abstract class HysterixCommand<T> {
         return Optional.empty();
     }
 
-    public F.Promise<T> execute() {
-        stopwatch.get().start();
+    public F.Promise<HysterixResponse<T>> execute() {
+        metadata.getStopwatch().start();
 
         return work().map(response -> onSuccess(response)).recover(t -> onRecover(t));
+    }
+
+    public HysterixResponseMetadata getMetadata() {
+        return metadata;
+    }
+
+    public Optional<T> getFallback() {
+        return Optional.empty();
     }
 
     //checks cache or does invoke run method
@@ -58,18 +56,17 @@ public abstract class HysterixCommand<T> {
         return run();
     }
 
-    private T onSuccess(final T response) {
+    private HysterixResponse<T> onSuccess(final T response) {
         logger.debug("onSuccess..." + response.hashCode());
-        stopwatch.get().stop();
-        executionEvents.add(HysterixEventType.SUCCESS);
+        metadata.getStopwatch().stop();
+        metadata.markSuccess();
         putToCache(response);
         executionComplete();
 
-        return response;
+        return HysterixResponse.create(response, metadata);
     }
 
     private void executionComplete() {
-        isExecutionComplete.set(true);
         hysterixContext.get().getHysterixRequestLog().addExecutedCommand(this);
     }
 
@@ -89,7 +86,7 @@ public abstract class HysterixCommand<T> {
             logger.debug("possibleValuePresent?:" + possibleValue.isPresent());
             if (possibleValue.isPresent()) {
                 final T value = (T) possibleValue.get();
-                executionEvents.add(HysterixEventType.RESPONSE_FROM_CACHE);
+                metadata.markResponseFromCache();
                 return Optional.of(F.Promise.pure(value));
             }
         }
@@ -117,19 +114,20 @@ public abstract class HysterixCommand<T> {
     }
 
     private void onFailure(final Throwable t) {
-        logger.debug("onFailure:" + t);
-        stopwatch.get().stop();
-        executionEvents.add(HysterixEventType.FAILURE);
+        logger.warn("onFailure handling in hysterix", t);
+        metadata.getStopwatch().stop();
+        metadata.markFailure();
         executionComplete();
     }
 
-    private T onRecover(final Throwable t) throws Throwable {
+    private HysterixResponse<T> onRecover(final Throwable t) throws Throwable {
         onFailure(t);
-        logger.debug("onRecover:" + t.getMessage());
+        logger.warn("onRecover:" + t.getMessage());
         final HysterixSettings hysterixSettings = hysterixContext.get().getHysterixSettings();
 
         if (hysterixSettings.isFallbackEnabled()) {
-            logger.debug("onRecover - fallback enabled");
+            logger.warn("onRecover - fallback enabled");
+
             return getFallback().map(response -> onRecoverSuccess(response))
                     .orElseThrow(() -> onRecoverFailure(t));
         }
@@ -137,63 +135,30 @@ public abstract class HysterixCommand<T> {
         throw t;
     }
 
-    private T onRecoverSuccess(final T t) {
-        executionEvents.add(HysterixEventType.FALLBACK_SUCCESS);
+    private HysterixResponse<T> onRecoverSuccess(final T t) {
+        metadata.markFallbackSuccess();
         executionComplete();
         putToCache(t);
-        return t;
+
+        return HysterixResponse.create(t, metadata);
     }
 
     private Throwable onRecoverFailure(final Throwable t) {
         if (t instanceof TimeoutException) {
-            executionEvents.add(HysterixEventType.TIMEOUT);
+            metadata.markTimeout();
         }
-        executionEvents.add(HysterixEventType.FAILURE);
-        executionEvents.add(HysterixEventType.FALLBACK_FAILURE);
+
+        metadata.markFailure();
+        metadata.markFallbackFailure();
 
         return t;
     }
 
-    protected boolean isRequestCachingEnabled() {
+    private boolean isRequestCachingEnabled() {
         final HysterixSettings hysterixSettings = hysterixContext.get().getHysterixSettings();
 
         return hysterixSettings.isRequestCacheEnabled() && getCacheKey().isPresent();
     }
 
-    public Optional<T> getFallback() {
-        return Optional.empty();
-    }
-
-    public boolean isExecutionComplete() {
-        return isExecutionComplete.get();
-    }
-
-    public boolean isSuccessfulExecution() {
-        return executionEvents.contains(HysterixEventType.SUCCESS);
-    }
-
-    public boolean isFailedExecution() {
-        return executionEvents.contains(HysterixEventType.FAILURE);
-    }
-
-    public boolean isResponseFromFallback() {
-        return executionEvents.contains(HysterixEventType.FALLBACK_SUCCESS);
-    }
-
-    public boolean isResponseTimeout() {
-        return executionEvents.contains(HysterixEventType.TIMEOUT);
-    }
-
-    public boolean isResponseFromCache() {
-        return executionEvents.contains(HysterixEventType.RESPONSE_FROM_CACHE);
-    }
-
-    public long getExecutionTime(final TimeUnit timeUnit) {
-        return stopwatch.get().elapsed(timeUnit);
-    }
-
-    public List<HysterixEventType> getExecutionEvents() {
-        return Lists.newArrayList(executionEvents);
-    }
 
 }
