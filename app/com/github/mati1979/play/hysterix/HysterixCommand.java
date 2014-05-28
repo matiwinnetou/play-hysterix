@@ -22,10 +22,6 @@ public abstract class HysterixCommand<T> {
         this.hysterixContext = new AtomicReference<>(context);
     }
 
-    public HysterixSettings getHysterixSettings() {
-        return hysterixContext.get().getHysterixSettings();
-    }
-
     public abstract String getCommandKey();
 
     public Optional<String> getCommandGroupKey() {
@@ -54,16 +50,23 @@ public abstract class HysterixCommand<T> {
     private F.Promise<T> tryCache() {
         if (isRequestCachingEnabled()) {
             final HysterixRequestCacheHolder hysterixRequestCacheHolder = hysterixContext.get().getHysterixRequestCacheHolder();
-            final HttpRequestsCache<T> cache = hysterixRequestCacheHolder.getOrCreate(getCommandKey());
-
-            return cache.createRequest(this).executeRequest();
+            final HysterixHttpRequestsCache<T> cache = hysterixRequestCacheHolder.getOrCreate(getCommandKey());
+            logger.debug(String.format("cache for group:%s command key:%s", getCommandGroupKey().orElse(null), getCommandKey()));
+            if (isRequestCachingEnabled()) {
+                return cache.createRequest(this).executeRequest();
+            }
         }
 
+        return callRemote();
+    }
+
+    protected F.Promise<T> callRemote() {
+        logger.debug("calling remote system for command:" + getCommandKey() + ",cacheKey:" + getCacheKey());
         return run();
     }
 
     private HysterixResponse<T> onSuccess(final T response) {
-        logger.debug("onSuccess..." + response.hashCode());
+        logger.debug("onSuccess, command:" + getCommandKey() + ",key:" + getCacheKey());
         metadata.getStopwatch().stop();
         metadata.markSuccess();
         executionComplete();

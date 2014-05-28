@@ -14,16 +14,16 @@ import java.util.Optional;
  * Created by mati on 24/05/2014.
  */
 @NotThreadSafe
-public class HttpRequestsCache<T> {
+public class HysterixHttpRequestsCache<T> {
 
     private Map<String, ClientsGroup> cache = Maps.newHashMap();
 
     private Map<String, String> requestIdsToGroupIds = Maps.newHashMap();
 
-    public HttpRequestsCache() {
+    public HysterixHttpRequestsCache() {
     }
 
-    public HttpRequestsCache addRequest(final String requestId, final HysterixCommand<T> command) {
+    public synchronized HysterixHttpRequestsCache addRequest(final String requestId, final HysterixCommand<T> command) {
         if (shouldNotCache(command)) {
             return this;
         }
@@ -41,21 +41,11 @@ public class HttpRequestsCache<T> {
         return this;
     }
 
-    private boolean isRequestCachingEnabled(final HysterixCommand<T> command) {
-        final HysterixSettings hysterixSettings = command.getHysterixSettings();
-
-        return hysterixSettings.isRequestCacheEnabled() && command.getCacheKey().isPresent();
+    public HysterixHttpRequest createRequest(final HysterixCommand command) {
+        return new HysterixHttpRequest(this, command);
     }
 
-    private boolean shouldNotCache(final HysterixCommand<T> command) {
-        return !command.getCacheKey().isPresent() && !command.getHysterixSettings().isRequestCacheEnabled();
-    }
-
-    public HttpRequest createRequest(final HysterixCommand command) {
-        return new HttpRequest(this, command);
-    }
-
-    public F.Promise<T> execute(final String requestId) {
+    public synchronized F.Promise<T> execute(final String requestId) {
         final String clientsGroupId = requestIdsToGroupIds.get(requestId);
 
         final ClientsGroup clientsGroup = getOrCreateClientsGroup(clientsGroupId);
@@ -67,18 +57,22 @@ public class HttpRequestsCache<T> {
         return realGet(requestId, clientsGroup);
     }
 
+    private boolean shouldNotCache(final HysterixCommand<T> command) {
+        return !command.getCacheKey().isPresent();
+    }
+
     private ClientsGroup getOrCreateClientsGroup(final String clientGroupId) {
         return cache.getOrDefault(clientGroupId, new ClientsGroup(clientGroupId));
     }
 
-    private F.Promise<T> realGet(final String requestId, final ClientsGroup clientsGroup) {
+    private F.Promise<T> realGet(final String requestId, final ClientsGroup<T> clientsGroup) {
         if (clientsGroup.hystrixCommands.isEmpty()) {
             return F.Promise.throwing(new RuntimeException("You must first enqueue a holder via addRequest method!"));
         }
 
         final HysterixCommand<T> next = clientsGroup.hystrixCommands.iterator().next();
         clientsGroup.stopwatch.start();
-        final F.Promise<T> realResponseP = next.run();
+        final F.Promise<T> realResponseP = next.callRemote();
         clientsGroup.realPromise = Optional.of(realResponseP);
 
         realResponseP.onRedeem(response -> clientsGroup.redeemSuccess(response));
@@ -93,7 +87,7 @@ public class HttpRequestsCache<T> {
         return scala.concurrent.Promise$.MODULE$.<T>apply();
     }
 
-    private class ClientsGroup {
+    private static class ClientsGroup<T> {
 
         private final String groupId;
         private Optional<F.Promise<T>> realPromise = Optional.empty();
@@ -101,7 +95,7 @@ public class HttpRequestsCache<T> {
         private Map<String, scala.concurrent.Promise<T>> lazyProxyPromises = Maps.newHashMap();
         private boolean isCompleted = false;
 
-        private Stopwatch stopwatch = Stopwatch.createUnstarted();
+        private Stopwatch stopwatch = new Stopwatch();
 
         private ClientsGroup(final String groupId) {
             this.groupId = groupId;
@@ -118,7 +112,10 @@ public class HttpRequestsCache<T> {
         private void redeemSuccess(final T data) {
             isCompleted = true;
             stopwatch.stop();
-            lazyProxyPromises.values().stream().forEach(p -> p.success(data));
+            lazyProxyPromises.values().stream().forEach(p -> {
+                //TODO notify that request came from cache
+                p.success(data);
+            });
         }
 
         private void redeemFailure(final Throwable t) {
