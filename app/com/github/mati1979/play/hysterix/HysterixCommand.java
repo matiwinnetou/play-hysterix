@@ -50,7 +50,7 @@ public abstract class HysterixCommand<T> {
     private F.Promise<T> tryCache() {
         if (isRequestCachingEnabled()) {
             final HysterixRequestCacheHolder hysterixRequestCacheHolder = hysterixContext.get().getHysterixRequestCacheHolder();
-            final HysterixHttpRequestsCache<T> cache = hysterixRequestCacheHolder.getOrCreate(getCommandKey());
+            final HysterixHttpRequestsCache cache = hysterixRequestCacheHolder.getOrCreate(getCommandKey());
             logger.debug(String.format("cache for group:%s command key:%s", getCommandGroupKey().orElse(null), getCommandKey()));
             if (isRequestCachingEnabled()) {
                 return cache.createRequest(this).executeRequest();

@@ -18,6 +18,10 @@ public class HysterixHttpRequest {
         this.hysterixHttpRequestsCache = hysterixHttpRequestsCache.addRequest(requestId, command);
     }
 
+    public static HysterixHttpRequest create(final HysterixHttpRequestsCache hysterixHttpRequestsCache, final HysterixCommand command) {
+        return new HysterixHttpRequest(hysterixHttpRequestsCache, command);
+    }
+
     public String getRequestId() {
         return requestId;
     }
