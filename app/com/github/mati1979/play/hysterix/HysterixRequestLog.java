@@ -19,6 +19,7 @@ public class HysterixRequestLog {
         if (!executedCommands.offer(command)) {
             logger.warn("RequestLog ignoring command after reaching limit of " + MAX_STORAGE);
         }
+        logger.debug("HysterixRequestLog:" + getExecutedCommandsAsString());
     }
 
     public Collection<HysterixCommand<?>> getExecutedCommands() {

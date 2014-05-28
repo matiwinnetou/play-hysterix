@@ -1,7 +1,5 @@
 package com.github.mati1979.play.hysterix;
 
-import play.libs.F;
-
 /**
  * Created by mszczap on 27.05.14.
  */
@@ -10,7 +8,7 @@ public class HysterixResponse<T> {
     private T response;
     private HysterixResponseMetadata metadata;
 
-    private HysterixResponse(T response, HysterixResponseMetadata metadata) {
+    private HysterixResponse(final T response, final HysterixResponseMetadata metadata) {
         this.response = response;
         this.metadata = metadata;
     }
@@ -23,7 +21,7 @@ public class HysterixResponse<T> {
         return metadata;
     }
 
-    public static <T> HysterixResponse create(T response, HysterixResponseMetadata metadata) {
+    public static <T> HysterixResponse create(final T response, final HysterixResponseMetadata metadata) {
         return new HysterixResponse(response, metadata);
     }
 

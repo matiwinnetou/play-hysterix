@@ -1,12 +1,11 @@
 package com.github.mati1979.play.hysterix;
 
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import play.libs.F;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -50,19 +49,22 @@ public class HysterixHttpRequestsCache {
     public synchronized F.Promise execute(final String requestId) {
         final ClientsGroup clientsGroup = requestIdToClients.get(requestId);
 
-        if (clientsGroup.isCompleted()) {
+        if (clientsGroup.realResponse.isPresent() && clientsGroup.realResponse.get().isCompleted()) {
+            final RealResponse response = clientsGroup.realResponse.get();
             logger.debug("isCompleted, groupId:" + clientsGroup.groupId);
-            if (clientsGroup.successValue.isPresent()) {
+            if (response.successValue.isPresent()) {
                 logger.debug("isCompleted, success:" + clientsGroup.groupId);
-                return F.Promise.pure(clientsGroup.successValue.get());
+                //clientsGroup.realRequest.ifPresent(realRequest -> realRequest.realCommand.getMetadata().markResponseFromCache());
+                return F.Promise.pure(response.successValue.get());
             }
-            if (clientsGroup.failureValue.isPresent()) {
+            if (response.failureValue.isPresent()) {
                 logger.debug("isCompleted, failure:" + clientsGroup.groupId);
-                return F.Promise.throwing(clientsGroup.failureValue.get());
+                //clientsGroup.realRequest.ifPresent(realRequest -> realRequest.realCommand.getMetadata().markResponseFromCache());
+                return F.Promise.throwing(response.failureValue.get());
             }
         }
 
-        if (clientsGroup.realPromise.isPresent()) {
+        if (clientsGroup.realRequest.isPresent()) {
             return clientsGroup.getLazyPromise(requestId);
         }
 
@@ -83,10 +85,10 @@ public class HysterixHttpRequestsCache {
             return F.Promise.throwing(new RuntimeException("You must first enqueue a holder via addRequest method!"));
         }
 
-        final HysterixCommand next = clientsGroup.hystrixCommands.iterator().next();
-        clientsGroup.stopwatch.start();
-        final F.Promise realResponseP = next.callRemote();
-        clientsGroup.realPromise = Optional.of(realResponseP);
+        final HysterixCommand realCommand = clientsGroup.hystrixCommands.iterator().next();
+        final F.Promise realResponseP = realCommand.callRemote();
+        final RealRequest realRequest = new RealRequest(realCommand, realResponseP, requestId);
+        clientsGroup.realRequest = Optional.of(realRequest);
 
         realResponseP.onRedeem(response -> clientsGroup.redeemSuccess(response));
         realResponseP.onFailure(t -> clientsGroup.redeemFailure((Throwable)t));
@@ -96,20 +98,19 @@ public class HysterixHttpRequestsCache {
         return clientsGroup.getLazyPromise(requestId);
     }
 
-    private scala.concurrent.Promise createLazyPromise() {
-        return scala.concurrent.Promise$.MODULE$.apply();
+    private LazyPromise createLazyPromise() {
+        return new LazyPromise(scala.concurrent.Promise$.MODULE$.apply());
     }
 
     private static class ClientsGroup {
 
         private final String groupId;
-        private Optional<F.Promise> realPromise = Optional.empty();
-        private Collection<HysterixCommand> hystrixCommands = Lists.newArrayList();
-        private Map<String, scala.concurrent.Promise> lazyProxyPromises = Maps.newHashMap();
-        private Optional<Object> successValue = Optional.empty();
-        private Optional<Throwable> failureValue = Optional.empty();
+        private Optional<RealRequest> realRequest = Optional.empty();
+        private Optional<RealResponse> realResponse = Optional.empty();
 
-        private Stopwatch stopwatch = new Stopwatch();
+        private Map<String, LazyPromise> lazyProxyPromises = Maps.newHashMap();
+
+        private  List<HysterixCommand> hystrixCommands = Lists.newArrayList();
 
         private ClientsGroup(final String groupId) {
             this.groupId = groupId;
@@ -119,24 +120,79 @@ public class HysterixHttpRequestsCache {
             return F.Promise.wrap(asScalaPromise(requestId).future());
         }
 
+        private void redeemSuccess(final Object data) {
+            final RealResponse response = new RealResponse();
+            response.successValue = Optional.of(data);
+            this.realResponse = Optional.of(response);
+
+            lazyProxyPromises.values().stream().filter(p -> !p.callbackExecuted).forEach(lazyPromise -> {
+//                realRequest.ifPresent(real -> {
+////                    if (real.realCommand == lazyPromise.hysterixCommand) {
+////                        //lazyPromise.hysterixCommand.getMetadata().markSuccess();
+////                    } else {
+////                        //lazyPromise.hysterixCommand.getMetadata().markResponseFromCache();
+////                    }
+//                });
+                lazyPromise.callbackExecuted = true;
+                lazyPromise.promise.success(data);
+            });
+        }
+
+        private void redeemFailure(final Throwable t) {
+            final RealResponse response = new RealResponse();
+            response.failureValue = Optional.of(t);
+            lazyProxyPromises.values().stream().filter(p -> !p.callbackExecuted).forEach(lazyPromise -> {
+//                realRequest.ifPresent(real -> {
+////                    if (real.realCommand == lazyPromise.hysterixCommand) {
+////                        lazyPromise.hysterixCommand.getMetadata().markFailure();
+////                    } else {
+////                        lazyPromise.hysterixCommand.getMetadata().markResponseFromCache();
+////                    }
+//                });
+
+                lazyPromise.callbackExecuted = true;
+                lazyPromise.promise.failure(t);
+            });
+        }
+
+        private scala.concurrent.Promise asScalaPromise(final String requestId) {
+            return lazyProxyPromises.get(requestId).promise;
+        }
+
+    }
+
+    private static class RealRequest {
+
+        private F.Promise realPromise;
+        private HysterixCommand realCommand;
+        private String requestId;
+
+        private RealRequest(HysterixCommand realCommand, F.Promise realPromise, String requestId) {
+            this.realPromise = realPromise;
+            this.realCommand = realCommand;
+            this.requestId = requestId;
+        }
+
+    }
+
+    private static class RealResponse {
+
+        private Optional<Object> successValue = Optional.empty();
+        private Optional<Throwable> failureValue = Optional.empty();
+
         public boolean isCompleted() {
             return successValue.isPresent() || failureValue.isPresent();
         }
 
-        private void redeemSuccess(final Object data) {
-            this.successValue = Optional.of(data);
-            stopwatch.stop();
-            lazyProxyPromises.values().stream().forEach(p -> p.success(data));
-        }
+    }
 
-        private void redeemFailure(final Throwable t) {
-            this.failureValue = Optional.of(t);
-            stopwatch.stop();
-            lazyProxyPromises.values().stream().forEach(p -> p.failure(t));
-        }
+    private static class LazyPromise {
 
-        private scala.concurrent.Promise asScalaPromise(final String requestId) {
-            return lazyProxyPromises.get(requestId);
+        private scala.concurrent.Promise promise;
+        private boolean callbackExecuted = false;
+
+        private LazyPromise(scala.concurrent.Promise promise) {
+            this.promise = promise;
         }
 
     }
