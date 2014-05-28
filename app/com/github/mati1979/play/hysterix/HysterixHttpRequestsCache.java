@@ -126,15 +126,8 @@ public class HysterixHttpRequestsCache {
             this.realResponse = Optional.of(response);
 
             lazyProxyPromises.values().stream().filter(p -> !p.callbackExecuted).forEach(lazyPromise -> {
-//                realRequest.ifPresent(real -> {
-////                    if (real.realCommand == lazyPromise.hysterixCommand) {
-////                        //lazyPromise.hysterixCommand.getMetadata().markSuccess();
-////                    } else {
-////                        //lazyPromise.hysterixCommand.getMetadata().markResponseFromCache();
-////                    }
-//                });
                 lazyPromise.callbackExecuted = true;
-                lazyPromise.promise.success(data);
+                lazyPromise.scalaPromise.success(data);
             });
         }
 
@@ -142,21 +135,13 @@ public class HysterixHttpRequestsCache {
             final RealResponse response = new RealResponse();
             response.failureValue = Optional.of(t);
             lazyProxyPromises.values().stream().filter(p -> !p.callbackExecuted).forEach(lazyPromise -> {
-//                realRequest.ifPresent(real -> {
-////                    if (real.realCommand == lazyPromise.hysterixCommand) {
-////                        lazyPromise.hysterixCommand.getMetadata().markFailure();
-////                    } else {
-////                        lazyPromise.hysterixCommand.getMetadata().markResponseFromCache();
-////                    }
-//                });
-
                 lazyPromise.callbackExecuted = true;
-                lazyPromise.promise.failure(t);
+                lazyPromise.scalaPromise.failure(t);
             });
         }
 
         private scala.concurrent.Promise asScalaPromise(final String requestId) {
-            return lazyProxyPromises.get(requestId).promise;
+            return lazyProxyPromises.get(requestId).scalaPromise;
         }
 
     }
@@ -188,11 +173,11 @@ public class HysterixHttpRequestsCache {
 
     private static class LazyPromise {
 
-        private scala.concurrent.Promise promise;
+        private scala.concurrent.Promise scalaPromise;
         private boolean callbackExecuted = false;
 
-        private LazyPromise(scala.concurrent.Promise promise) {
-            this.promise = promise;
+        private LazyPromise(scala.concurrent.Promise scalaPromise) {
+            this.scalaPromise = scalaPromise;
         }
 
     }

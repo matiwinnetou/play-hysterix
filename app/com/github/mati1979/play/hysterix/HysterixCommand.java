@@ -67,7 +67,6 @@ public abstract class HysterixCommand<T> {
 
     private HysterixResponse<T> onSuccess(final T response) {
         logger.debug("onSuccess, command:" + getCommandKey() + ",key:" + getCacheKey());
-        metadata.getStopwatch().stop();
         metadata.markSuccess();
         executionComplete();
 
@@ -75,19 +74,12 @@ public abstract class HysterixCommand<T> {
     }
 
     private void executionComplete() {
+        metadata.getStopwatch().stop();
         hysterixContext.get().getHysterixRequestLog().addExecutedCommand(this);
     }
 
-    private void onFailure(final Throwable t) {
-        logger.warn("onFailure handling in hysterix", t);
-        metadata.getStopwatch().stop();
-        metadata.markFailure();
-        executionComplete();
-    }
-
     private HysterixResponse<T> onRecover(final Throwable t) throws Throwable {
-        onFailure(t);
-        logger.warn("onRecover:" + t.getMessage());
+        logger.warn("onRecover handling in hysterix", t);
         final HysterixSettings hysterixSettings = hysterixContext.get().getHysterixSettings();
 
         if (hysterixSettings.isFallbackEnabled()) {
@@ -100,6 +92,7 @@ public abstract class HysterixCommand<T> {
         throw t;
     }
 
+    //this is the end of path
     private HysterixResponse<T> onRecoverSuccess(final T t) {
         metadata.markFallbackSuccess();
         executionComplete();
@@ -107,14 +100,15 @@ public abstract class HysterixCommand<T> {
         return HysterixResponse.create(t, metadata);
     }
 
+    //this is the end of path
     private Throwable onRecoverFailure(final Throwable t) {
+        metadata.markFailure();
+        metadata.markFallbackFailure();
         if (t instanceof TimeoutException) {
             metadata.markTimeout();
         }
 
-        metadata.markFailure();
-        metadata.markFallbackFailure();
-
+        executionComplete();
         return t;
     }
 
