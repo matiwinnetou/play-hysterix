@@ -51,10 +51,11 @@ public abstract class HysterixCommand<T> {
 
     //checks cache or does invoke run method
     private F.Promise<T> tryCache() {
-        if (isRequestCachingEnabled()) {
+        if (isRequestCachingEnabled() && getRequestCacheKey().isPresent()) {
             final HysterixRequestCacheHolder hysterixRequestCacheHolder = hysterixContext.get().getHysterixRequestCacheHolder();
-            final HysterixHttpRequestsCache cache = hysterixRequestCacheHolder.getOrCreate(getCommandKey());
-            logger.debug(String.format("cache for group:%s command key:%s", getCommandGroupKey().orElse(null), getCommandKey()));
+            final String requestCacheKey = getRequestCacheKey().get();
+            final HysterixHttpRequestsCache cache = hysterixRequestCacheHolder.getOrCreate(requestCacheKey);
+            logger.debug(String.format("cache for group:%s, requestCacheKey:%s", getCommandGroupKey().orElse(null), requestCacheKey));
             if (isRequestCachingEnabled()) {
                 return cache.addRequest(httpRequestId, this).execute(httpRequestId).map(cacheResp -> {
                   if (cacheResp.isCacheHit()) {
@@ -68,6 +69,10 @@ public abstract class HysterixCommand<T> {
         }
 
         return callRemote();
+    }
+
+    private Optional<String> getRequestCacheKey() {
+        return getCacheKey().map(key -> getCommandGroupKey().orElse("").concat(getCommandKey()).concat(key));
     }
 
     protected F.Promise<T> callRemote() {
