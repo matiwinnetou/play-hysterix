@@ -19,7 +19,7 @@ public class HysterixHttpRequestsCache {
 
     private final String clientGroupId;
 
-    private Optional<RealRequest> realRequest = Optional.empty();
+    private Optional<HysterixCommand> realCommand = Optional.empty();
 
     private Optional<RealResponse> realResponse = Optional.empty();
 
@@ -59,7 +59,7 @@ public class HysterixHttpRequestsCache {
             }
         }
 
-        if (realRequest.isPresent()) {
+        if (realCommand.isPresent()) {
             return getLazyPromise(requestId);
         }
 
@@ -71,11 +71,10 @@ public class HysterixHttpRequestsCache {
         response.successValue = Optional.of(data);
         this.realResponse = Optional.of(response);
 
-        lazyProxyPromises.values().stream().filter(p -> !p.callbackExecuted && realRequest.isPresent()).forEach(lazyPromise -> {
-            final RealRequest realReq = realRequest.get();
+        lazyProxyPromises.values().stream().filter(p -> !p.callbackExecuted && realCommand.isPresent()).forEach(lazyPromise -> {
             final CacheResp cacheResp = new CacheResp(true);
-            if (realReq.realCommand == lazyPromise.hysterixCommand) {
-                logger.debug("real success, caching resp -> false:command:" + realReq.realCommand.getCommandKey());
+            if (realCommand.get() == lazyPromise.hysterixCommand) {
+                logger.debug("real success, caching resp -> false:command:" + realCommand.get().getCommandKey());
                 cacheResp.cacheHit = false;
             }
             cacheResp.data = data;
@@ -113,9 +112,9 @@ public class HysterixHttpRequestsCache {
             return F.Promise.throwing(new RuntimeException("You must first enqueue a holder via addRequest method!"));
         }
 
-        final HysterixCommand realCommand = hystrixCommands.iterator().next();
-        final F.Promise realResponseP = realCommand.callRemote();
-        this.realRequest = Optional.of(new RealRequest(realCommand, realResponseP, requestId));
+        final HysterixCommand command = hystrixCommands.iterator().next();
+        final F.Promise realResponseP = command.callRemote();
+        this.realCommand = Optional.of(command);
 
         realResponseP.onRedeem(response -> redeemSuccess(response));
         realResponseP.onFailure(t -> redeemFailure((Throwable)t));
@@ -125,20 +124,6 @@ public class HysterixHttpRequestsCache {
 
     private LazyPromise createLazyPromise(final HysterixCommand hysterixCommand) {
         return new LazyPromise(scala.concurrent.Promise$.MODULE$.apply(), hysterixCommand);
-    }
-
-    private static class RealRequest {
-
-        private F.Promise realPromise;
-        private HysterixCommand realCommand;
-        private String requestId;
-
-        private RealRequest(HysterixCommand realCommand, F.Promise realPromise, String requestId) {
-            this.realPromise = realPromise;
-            this.realCommand = realCommand;
-            this.requestId = requestId;
-        }
-
     }
 
     private static class RealResponse {

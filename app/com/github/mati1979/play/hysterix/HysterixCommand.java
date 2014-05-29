@@ -35,6 +35,10 @@ public abstract class HysterixCommand<T> {
         return Optional.empty();
     }
 
+    public Optional<String> getRemoteUrl() {
+        return Optional.empty();
+    }
+
     public F.Promise<HysterixResponse<T>> execute() {
         metadata.getStopwatch().start();
 
@@ -51,24 +55,24 @@ public abstract class HysterixCommand<T> {
 
     //checks cache or does invoke run method
     private F.Promise<T> tryCache() {
-        if (isRequestCachingEnabled() && getRequestCacheKey().isPresent()) {
-            final HysterixRequestCacheHolder hysterixRequestCacheHolder = hysterixContext.get().getHysterixRequestCacheHolder();
-            final String requestCacheKey = getRequestCacheKey().get();
-            final HysterixHttpRequestsCache cache = hysterixRequestCacheHolder.getOrCreate(requestCacheKey);
-            logger.debug(String.format("cache for group:%s, requestCacheKey:%s", getCommandGroupKey().orElse(null), requestCacheKey));
-            if (isRequestCachingEnabled()) {
-                return cache.addRequest(httpRequestId, this).execute(httpRequestId).map(cacheResp -> {
-                  if (cacheResp.isCacheHit()) {
-                      getMetadata().markResponseFromCache();
-                  } else {
-                      getMetadata().markSuccess();
-                  }
-                  return (T) cacheResp.getData();
-                });
-            }
+        if (isRequestCachingDisabled() || !getRequestCacheKey().isPresent()) {
+            logger.debug("caching disabled:commandKey:" + getCommandKey(),"cacheKey:" + getCacheKey());
+            return callRemote();
         }
+        final String requestCacheKey = getRequestCacheKey().get();
+        logger.debug(String.format("cache for group:%s, requestCacheKey:%s", getCommandGroupKey().orElse(null), requestCacheKey));
 
-        return callRemote();
+        final HysterixRequestCacheHolder hysterixRequestCacheHolder = hysterixContext.get().getHysterixRequestCacheHolder();
+        final HysterixHttpRequestsCache cache = hysterixRequestCacheHolder.getOrCreate(requestCacheKey);
+
+        return cache.addRequest(httpRequestId, this).execute(httpRequestId).map(cacheResp -> {
+            if (cacheResp.isCacheHit()) {
+                getMetadata().markResponseFromCache();
+            } else {
+                getMetadata().markSuccess();
+            }
+            return (T) cacheResp.getData();
+        });
     }
 
     private Optional<String> getRequestCacheKey() {
@@ -130,6 +134,10 @@ public abstract class HysterixCommand<T> {
         final HysterixSettings hysterixSettings = hysterixContext.get().getHysterixSettings();
 
         return hysterixSettings.isRequestCacheEnabled() && getCacheKey().isPresent();
+    }
+
+    private boolean isRequestCachingDisabled() {
+        return !isRequestCachingEnabled();
     }
 
 }

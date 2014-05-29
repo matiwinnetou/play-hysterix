@@ -1,5 +1,7 @@
 package com.github.mati1979.play.hysterix;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Created by mszczap on 27.05.14.
  */
@@ -13,16 +15,40 @@ public class HysterixResponse<T> {
         this.metadata = metadata;
     }
 
+    public static <T> HysterixResponse create(final T response, final HysterixResponseMetadata metadata) {
+        return new HysterixResponse(response, metadata);
+    }
+
     public T getResponse() {
         return response;
     }
 
-    public HysterixResponseMetadata getMetadata() {
-        return metadata;
+    public boolean isExecutionComplete() {
+        return metadata.isExecutionComplete();
     }
 
-    public static <T> HysterixResponse create(final T response, final HysterixResponseMetadata metadata) {
-        return new HysterixResponse(response, metadata);
+    public boolean isSuccessfulExecution() {
+        return metadata.isSuccessfulExecution();
+    }
+
+    public boolean isFailedExecution() {
+        return metadata.isFailedExecution();
+    }
+
+    public boolean isResponseFromFallback() {
+        return metadata.isResponseFromCache();
+    }
+
+    public boolean isResponseTimeout() {
+        return metadata.isResponseTimeout();
+    }
+
+    public boolean isResponseFromCache() {
+        return metadata.isResponseFromCache();
+    }
+
+    public long getExecutionTime(final TimeUnit timeUnit) {
+        return metadata.getExecutionTime(timeUnit);
     }
 
 }
