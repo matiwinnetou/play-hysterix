@@ -18,7 +18,7 @@ public class HysterixHttpRequestsCache {
 
     private static final play.Logger.ALogger logger = play.Logger.of(HysterixHttpRequestsCache.class);
 
-    private final String clientGroupId;
+    private final String requestCacheKey;
 
     private Optional<HysterixCommand> realCommand = Optional.empty();
 
@@ -28,8 +28,8 @@ public class HysterixHttpRequestsCache {
 
     private List<HysterixCommand> hystrixCommands = Collections.synchronizedList(Lists.newArrayList());
 
-    public HysterixHttpRequestsCache(final String clientGroupId) {
-        this.clientGroupId = clientGroupId;
+    public HysterixHttpRequestsCache(final String requestCacheKey) {
+        this.requestCacheKey = requestCacheKey;
     }
 
     public synchronized HysterixHttpRequestsCache addRequest(final String requestId, final HysterixCommand command) {
@@ -46,16 +46,17 @@ public class HysterixHttpRequestsCache {
     public synchronized F.Promise<CacheResp> execute(final String requestId) {
         if (realResponse.isPresent() && realResponse.get().isCompleted()) {
             final RealResponse response = realResponse.get();
-            logger.debug("isCompleted, groupId:" + clientGroupId);
+            logger.debug("Call has been already completed, requestCacheKey:" + requestCacheKey);
             if (response.successValue.isPresent()) {
-                logger.debug("isCompleted, success:" + clientGroupId);
+                logger.debug("Completed with success, requestCacheKey:" + requestCacheKey);
                 final CacheResp cacheResp = new CacheResp(true);
                 cacheResp.data = response.successValue.get();
 
                 return F.Promise.pure(cacheResp);
             }
+
             if (response.failureValue.isPresent()) {
-                logger.debug("isCompleted, failure:" + clientGroupId);
+                logger.debug("Call has been already completed with failure, requestCacheKey:" + requestCacheKey);
                 return F.Promise.throwing(response.failureValue.get());
             }
         }
@@ -108,7 +109,7 @@ public class HysterixHttpRequestsCache {
     }
 
     private F.Promise realGet(final String requestId) {
-        logger.debug(String.format("real get for requestId:%s, groupId:%s", requestId, clientGroupId));
+        logger.debug(String.format("real get for requestId:%s, groupId:%s", requestId, requestCacheKey));
         if (hystrixCommands.isEmpty()) {
             return F.Promise.throwing(new RuntimeException("You must first enqueue a holder via addRequest method!"));
         }

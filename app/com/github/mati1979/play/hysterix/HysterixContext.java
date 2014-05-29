@@ -2,7 +2,7 @@ package com.github.mati1979.play.hysterix;
 
 public class HysterixContext {
 
-    private static final play.Logger.ALogger logger = play.Logger.of(HysterixCommand.class);
+    private static final play.Logger.ALogger logger = play.Logger.of(HysterixContext.class);
 
     private HysterixRequestCacheHolder hysterixRequestCacheHolder;
     private HysterixSettings hysterixSettings;
@@ -29,7 +29,8 @@ public class HysterixContext {
     }
 
     public static HysterixContext create(final HysterixSettings hysterixSettings) {
-        logger.debug("create new HysterixContext:" + hysterixSettings);
+        logger.debug("Creating new HysterixContext:" + hysterixSettings);
+
         return new HysterixContext(new HysterixRequestCacheHolder(), hysterixSettings, new HysterixRequestLog(hysterixSettings));
     }
 

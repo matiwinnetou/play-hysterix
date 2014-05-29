@@ -63,11 +63,13 @@ public abstract class HysterixCommand<T> {
     //checks cache or does invoke run method
     private F.Promise<T> tryCache() {
         if (isRequestCachingDisabled() || !getRequestCacheKey().isPresent()) {
-            logger.debug("caching disabled:commandKey:" + getCommandKey(),"cacheKey:" + getCacheKey());
+            logger.debug("Caching disabled - commandKey:" + getCommandKey());
+
             return callRemote();
         }
+
         final String requestCacheKey = getRequestCacheKey().get();
-        logger.debug(String.format("requestCacheKey:%s", requestCacheKey));
+        logger.debug(String.format("Trying to use request cache, requestCacheKey:%s", requestCacheKey));
 
         final HysterixRequestCacheHolder hysterixRequestCacheHolder = hysterixContext.get().getHysterixRequestCacheHolder();
         final HysterixHttpRequestsCache cache = hysterixRequestCacheHolder.getOrCreate(requestCacheKey);
@@ -82,16 +84,16 @@ public abstract class HysterixCommand<T> {
     }
 
     private Optional<String> getRequestCacheKey() {
-        return getCacheKey().map(key -> String.format("%s.%s.%s", getCommandGroupKey().orElse("?"), getCommandKey(), key));
+        return getCacheKey().map(cacheKey -> String.format("%s.%s.%s", getCommandGroupKey().orElse("?"), getCommandKey(), cacheKey));
     }
 
     protected F.Promise<T> callRemote() {
-        logger.debug("calling remote system for command:" + getCommandKey() + ",cacheKey:" + getCacheKey());
+        logger.debug("Calling remote system for command:" + getCommandKey() + ",url:" + getRemoteUrl().orElse("?"));
         return run();
     }
 
     private HysterixResponse<T> onSuccess(final T response) {
-        logger.debug("onSuccess, command:" + getCommandKey() + ",key:" + getCacheKey());
+        logger.debug("Successful response url:" + getRemoteUrl().orElse("?"));
         executionComplete();
 
         return HysterixResponse.create(response, metadata);
@@ -100,17 +102,19 @@ public abstract class HysterixCommand<T> {
     private void executionComplete() {
         metadata.getStopwatch().stop();
         hysterixContext.get().getHysterixRequestLog().addExecutedCommand(this);
+        logger.debug("Execution complete, url:" + getRemoteUrl().orElse("?"));
     }
 
     private HysterixResponse<T> onRecover(final Throwable t) throws Throwable {
-        logger.warn("onRecover handling in hysterix", t);
+        logger.warn("Remote call failed, url:" + getRemoteUrl().orElse("?"), t);
         final HysterixSettings hysterixSettings = hysterixContext.get().getHysterixSettings();
         metadata.markFailure();
         if (t instanceof java.util.concurrent.TimeoutException) {
+            logger.warn("Timeout from service, url:" + getRemoteUrl().orElse("?"));
             metadata.markTimeout();
         }
         if (hysterixSettings.isFallbackEnabled()) {
-            logger.warn("onRecover - fallback enabled");
+            logger.debug("onRecover - fallback enabled.");
 
             return getFallback().map(response -> onRecoverSuccess(response))
                     .orElseThrow(() -> onRecoverFailure(t));
@@ -119,16 +123,16 @@ public abstract class HysterixCommand<T> {
         throw t;
     }
 
-    //this is the end of path
     private HysterixResponse<T> onRecoverSuccess(final T t) {
+        logger.debug("Successfully recovered remote call failure, command:" + getCommandKey() + ",url:" + getRemoteUrl().orElse("?") + ",message:" + t.toString());
         metadata.markFallbackSuccess();
         executionComplete();
 
         return HysterixResponse.create(t, metadata);
     }
 
-    //this is the end of path
     private Throwable onRecoverFailure(final Throwable t) {
+        logger.error("Recovery from remote call failure, url:" + getRemoteUrl().orElse("?"));
         metadata.markFallbackFailure();
         if (t instanceof java.util.concurrent.TimeoutException) {
             metadata.markTimeout();
