@@ -5,20 +5,23 @@ public class HysterixSettings {
     private boolean fallbackEnabled = true;
     private boolean requestCacheEnabled = true;
 
+    private boolean requestLogInspect = false;
+    private int requestLogInspectTimeoutInMs = 5000;
+
     public boolean isFallbackEnabled() {
         return fallbackEnabled;
-    }
-
-    public void setFallbackEnabled(boolean fallbackEnabled) {
-        this.fallbackEnabled = fallbackEnabled;
     }
 
     public boolean isRequestCacheEnabled() {
         return requestCacheEnabled;
     }
 
-    public void setRequestCacheEnabled(boolean requestCacheEnabled) {
-        this.requestCacheEnabled = requestCacheEnabled;
+    public boolean isRequestLogInspect() {
+        return requestLogInspect;
+    }
+
+    public int getRequestLogInspectTimeoutInMs() {
+        return requestLogInspectTimeoutInMs;
     }
 
     public static class Builder {
@@ -29,13 +32,23 @@ public class HysterixSettings {
             hysterixSettings = new HysterixSettings();
         }
 
-        public Builder withFallbackEnabled(boolean fallbackEnabled) {
+        public Builder withFallbackEnabled(final boolean fallbackEnabled) {
             hysterixSettings.fallbackEnabled = fallbackEnabled;
             return this;
         }
 
-        public Builder withRequestCacheEnabled(boolean requestCacheEnabled) {
+        public Builder withRequestCacheEnabled(final boolean requestCacheEnabled) {
             hysterixSettings.requestCacheEnabled = requestCacheEnabled;
+            return this;
+        }
+
+        public Builder withRequestLogInspect(final boolean hysterixLogInspect) {
+            hysterixSettings.requestLogInspect = hysterixLogInspect;
+            return this;
+        }
+
+        public Builder withRequestLogInspectTimeoutInMs(final int hysterixLogInspectTimeoutInMs) {
+            hysterixSettings.requestLogInspectTimeoutInMs = hysterixLogInspectTimeoutInMs;
             return this;
         }
 

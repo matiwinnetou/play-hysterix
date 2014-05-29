@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import play.libs.F;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,9 +24,9 @@ public class HysterixHttpRequestsCache {
 
     private Optional<RealResponse> realResponse = Optional.empty();
 
-    private Map<String, LazyPromise> lazyProxyPromises = Maps.newHashMap();
+    private Map<String, LazyPromise> lazyProxyPromises = Maps.newConcurrentMap();
 
-    private List<HysterixCommand> hystrixCommands = Lists.newArrayList();
+    private List<HysterixCommand> hystrixCommands = Collections.synchronizedList(Lists.newArrayList());
 
     public HysterixHttpRequestsCache(final String clientGroupId) {
         this.clientGroupId = clientGroupId;

@@ -25,6 +25,14 @@ public abstract class HysterixCommand<T> {
         this.hysterixContext = new AtomicReference<>(context);
     }
 
+    public String getCommandId() {
+        return httpRequestId;
+    }
+
+    public Optional<String> getCallingClient() {
+        return Optional.empty();
+    }
+
     public abstract String getCommandKey();
 
     public Optional<String> getCommandGroupKey() {
@@ -66,10 +74,9 @@ public abstract class HysterixCommand<T> {
         final HysterixHttpRequestsCache cache = hysterixRequestCacheHolder.getOrCreate(requestCacheKey);
 
         return cache.addRequest(httpRequestId, this).execute(httpRequestId).map(cacheResp -> {
+            getMetadata().markSuccess();
             if (cacheResp.isCacheHit()) {
                 getMetadata().markResponseFromCache();
-            } else {
-                getMetadata().markSuccess();
             }
             return (T) cacheResp.getData();
         });

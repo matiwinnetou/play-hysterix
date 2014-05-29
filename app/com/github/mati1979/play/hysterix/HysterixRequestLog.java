@@ -5,9 +5,11 @@ import org.slf4j.LoggerFactory;
 import play.libs.F;
 import scala.concurrent.Future;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 public class HysterixRequestLog {
 
@@ -19,11 +21,30 @@ public class HysterixRequestLog {
 
     private LinkedBlockingQueue<scala.concurrent.Promise<Collection<HysterixCommand<?>>>> promises = new LinkedBlockingQueue<>();
 
+    private final HysterixSettings hysterixSettings;
+
+    public HysterixRequestLog(final HysterixSettings hysterixSettings) {
+        this.hysterixSettings = hysterixSettings;
+        if (hysterixSettings.isRequestLogInspect()) {
+            scheduleTimerTask();
+        }
+    }
+
+    private void scheduleTimerTask() {
+        final Timer timer = new Timer(false);
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                promises.stream().forEach(p -> p.success(getExecutedCommands()));
+            }
+
+        }, hysterixSettings.getRequestLogInspectTimeoutInMs());
+    }
+
     /* package */void addExecutedCommand(final HysterixCommand<?> command) {
         if (!executedCommands.offer(command)) {
             logger.warn("RequestLog ignoring command after reaching limit of " + MAX_STORAGE);
         }
-        logger.debug(getExecutedCommandsAsString());
     }
 
     public Collection<HysterixCommand<?>> getExecutedCommands() {
@@ -31,105 +52,17 @@ public class HysterixRequestLog {
     }
 
     public F.Promise<Collection<HysterixCommand<?>>> executedCommands() {
-        scala.concurrent.Promise<Collection<HysterixCommand<?>>> promise = scala.concurrent.Promise$.MODULE$.<Collection<HysterixCommand<?>>>apply();
+        if (!hysterixSettings.isRequestLogInspect()) {
+            throw new RuntimeException("cannot inspect log, you have to enable request log inspect via hystrix settings");
+        }
+        scala.concurrent.Promise<Collection<HysterixCommand<?>>> promise =
+                scala.concurrent.Promise$.MODULE$.<Collection<HysterixCommand<?>>>apply();
+
         promises.add(promise);
+
         final Future<Collection<HysterixCommand<?>>> future = promise.future();
 
         return F.Promise.wrap(future);
-    }
-
-    public void markRequestFinished() {
-        promises.stream().map(p -> p.success(getExecutedCommands()));
-    }
-
-    /**
-     * Formats the log of executed commands into a string usable for logging purposes.
-     * <p>
-     * Examples:
-     * <ul>
-     * <li>TestCommand[SUCCESS][1ms]</li>
-     * <li>TestCommand[SUCCESS][1ms], TestCommand[SUCCESS, RESPONSE_FROM_CACHE][1ms]x4</li>
-     * <li>TestCommand[TIMEOUT][1ms]</li>
-     * <li>TestCommand[FAILURE][1ms]</li>
-     * <li>TestCommand[THREAD_POOL_REJECTED][1ms]</li>
-     * <li>TestCommand[THREAD_POOL_REJECTED, FALLBACK_SUCCESS][1ms]</li>
-     * <li>TestCommand[FAILURE, FALLBACK_SUCCESS][1ms], TestCommand[FAILURE, FALLBACK_SUCCESS, RESPONSE_FROM_CACHE][1ms]x4</li>
-     * <li>GetData[SUCCESS][1ms], PutData[SUCCESS][1ms], GetValues[SUCCESS][1ms], GetValues[SUCCESS, RESPONSE_FROM_CACHE][1ms], TestCommand[FAILURE, FALLBACK_FAILURE][1ms], TestCommand[FAILURE,
-     * FALLBACK_FAILURE, RESPONSE_FROM_CACHE][1ms]</li>
-     * </ul>
-     * <p>
-     * If a command has a multiplier such as <code>x4</code> that means this command was executed 4 times with the same events. The time in milliseconds is the sum of the 4 executions.
-     * <p>
-     * For example, <code>TestCommand[SUCCESS][15ms]x4</code> represents TestCommand being executed 4 times and the sum of those 4 executions was 15ms. These 4 each executed the run() method since
-     * <code>RESPONSE_FROM_CACHE</code> was not present as an event.
-     *
-     * @return String request log or "Unknown" if unable to instead of throwing an exception.
-     */
-    public String getExecutedCommandsAsString() {
-        try {
-            LinkedHashMap<String, Long> aggregatedCommandsExecuted = new LinkedHashMap<>();
-            Map<String, Long> aggregatedCommandExecutionTime = new HashMap<>();
-
-            for (HysterixCommand<?> command : executedCommands) {
-                StringBuilder displayString = new StringBuilder();
-                displayString.append(command.getCommandKey());
-
-                final List<HysterixEventType> events = new ArrayList<>(command.getMetadata().getExecutionEvents());
-                if (events.size() > 0) {
-                    Collections.sort(events);
-                    displayString.append(Arrays.toString(events.toArray()));
-                } else {
-                    displayString.append("[Executed]");
-                }
-
-                if (command.getRemoteUrl().isPresent()) {
-                    displayString.append("[" + command.getRemoteUrl().orElse("") + "]");
-                }
-
-                String display = displayString.toString();
-                if (aggregatedCommandsExecuted.containsKey(display)) {
-                    // increment the count
-                    aggregatedCommandsExecuted.put(display, aggregatedCommandsExecuted.get(display) + 1);
-                } else {
-                    // add it
-                    aggregatedCommandsExecuted.put(display, 1L);
-                }
-
-                long executionTime = command.getMetadata().getExecutionTime(TimeUnit.MILLISECONDS);
-                if (executionTime < 0) {
-                    // do this so we don't create negative values or subtract values
-                    executionTime = 0;
-                }
-                if (aggregatedCommandExecutionTime.containsKey(display)) {
-                    // add to the existing executionTime (sum of executionTimes for duplicate command displayNames)
-                    aggregatedCommandExecutionTime.put(display, aggregatedCommandExecutionTime.get(display) + executionTime);
-                } else {
-                    // add it
-                    aggregatedCommandExecutionTime.put(display, executionTime);
-                }
-            }
-
-            StringBuilder header = new StringBuilder();
-            for (String displayString : aggregatedCommandsExecuted.keySet()) {
-                if (header.length() > 0) {
-                    header.append(", ");
-                }
-                header.append(displayString);
-
-                long totalExecutionTime = aggregatedCommandExecutionTime.get(displayString);
-                header.append("[").append(totalExecutionTime).append("ms]");
-
-                long count = aggregatedCommandsExecuted.get(displayString);
-                if (count > 1) {
-                    header.append("x").append(count);
-                }
-                header.append("\n");
-            }
-            return header.toString();
-        } catch (Exception e) {
-            logger.error("Failed to create response header string.", e);
-            return "Unknown";
-        }
     }
 
 }

@@ -30,11 +30,7 @@ public class HysterixContext {
 
     public static HysterixContext create(final HysterixSettings hysterixSettings) {
         logger.debug("create new HysterixContext:" + hysterixSettings);
-        return new HysterixContext(new HysterixRequestCacheHolder(), hysterixSettings, new HysterixRequestLog());
-    }
-
-    public static HysterixContext empty() {
-        return new HysterixContext(new HysterixRequestCacheHolder(), new HysterixSettings(), new HysterixRequestLog());
+        return new HysterixContext(new HysterixRequestCacheHolder(), hysterixSettings, new HysterixRequestLog(hysterixSettings));
     }
 
 }
