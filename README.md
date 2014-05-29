@@ -1,5 +1,4 @@
 #play-hysterix
-=============
 
 ## Intro
 
