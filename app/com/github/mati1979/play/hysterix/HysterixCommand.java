@@ -60,7 +60,7 @@ public abstract class HysterixCommand<T> {
             return callRemote();
         }
         final String requestCacheKey = getRequestCacheKey().get();
-        logger.debug(String.format("cache for group:%s, requestCacheKey:%s", getCommandGroupKey().orElse(null), requestCacheKey));
+        logger.debug(String.format("requestCacheKey:%s", requestCacheKey));
 
         final HysterixRequestCacheHolder hysterixRequestCacheHolder = hysterixContext.get().getHysterixRequestCacheHolder();
         final HysterixHttpRequestsCache cache = hysterixRequestCacheHolder.getOrCreate(requestCacheKey);
@@ -76,7 +76,7 @@ public abstract class HysterixCommand<T> {
     }
 
     private Optional<String> getRequestCacheKey() {
-        return getCacheKey().map(key -> getCommandGroupKey().orElse("").concat(getCommandKey()).concat(key));
+        return getCacheKey().map(key -> String.format("%s.%s.%s", getCommandGroupKey().orElse("?"), getCommandKey(), key));
     }
 
     protected F.Promise<T> callRemote() {

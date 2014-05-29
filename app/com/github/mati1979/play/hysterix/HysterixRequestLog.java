@@ -82,6 +82,10 @@ public class HysterixRequestLog {
                     displayString.append("[Executed]");
                 }
 
+                if (command.getRemoteUrl().isPresent()) {
+                    displayString.append("[" + command.getRemoteUrl().orElse("") + "]");
+                }
+
                 String display = displayString.toString();
                 if (aggregatedCommandsExecuted.containsKey(display)) {
                     // increment the count
@@ -103,7 +107,6 @@ public class HysterixRequestLog {
                     // add it
                     aggregatedCommandExecutionTime.put(display, executionTime);
                 }
-
             }
 
             StringBuilder header = new StringBuilder();
@@ -120,6 +123,7 @@ public class HysterixRequestLog {
                 if (count > 1) {
                     header.append("x").append(count);
                 }
+                header.append("\n");
             }
             return header.toString();
         } catch (Exception e) {
