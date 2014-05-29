@@ -3,12 +3,15 @@ package com.github.mati1979.play.hysterix;
 import play.libs.F;
 
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class HysterixCommand<T> {
 
     private static final play.Logger.ALogger logger = play.Logger.of(HysterixCommand.class);
+
+    protected final String httpRequestId = UUID.randomUUID().toString();
 
     protected final AtomicReference<HysterixContext> hysterixContext;
 
@@ -53,7 +56,7 @@ public abstract class HysterixCommand<T> {
             final HysterixHttpRequestsCache cache = hysterixRequestCacheHolder.getOrCreate(getCommandKey());
             logger.debug(String.format("cache for group:%s command key:%s", getCommandGroupKey().orElse(null), getCommandKey()));
             if (isRequestCachingEnabled()) {
-                return cache.createRequest(this).executeRequest().map(cacheResp -> {
+                return cache.addRequest(httpRequestId, this).execute(httpRequestId).map(cacheResp -> {
                   if (cacheResp.isCacheHit()) {
                       getMetadata().markResponseFromCache();
                   } else {

@@ -42,10 +42,6 @@ public class HysterixHttpRequestsCache {
         return this;
     }
 
-    public HysterixHttpRequest createRequest(final HysterixCommand command) {
-        return HysterixHttpRequest.create(this, command);
-    }
-
     public synchronized F.Promise<CacheResp> execute(final String requestId) {
         final ClientsGroup clientsGroup = requestIdToClients.get(requestId);
 
