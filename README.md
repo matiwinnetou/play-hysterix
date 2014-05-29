@@ -13,7 +13,8 @@ using thread locals neither necessary nor recommended.
 
 ## Support
 
-Supported Play for Java 2.3.x and binary for Scala 2.10.x (should work in Scala version as well)
+Support for Play for Java 2.3.x and binary for Scala 2.10.x (should work in Play Scala version as well). 
+Scala 2.11.x binary on request.
 
 ## Status 
 status: alpha, use at own risk, a few alpha libraries pushed to maven central at:
