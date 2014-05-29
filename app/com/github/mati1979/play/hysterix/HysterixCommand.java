@@ -99,6 +99,7 @@ public abstract class HysterixCommand<T> {
     private HysterixResponse<T> onRecover(final Throwable t) throws Throwable {
         logger.warn("onRecover handling in hysterix", t);
         final HysterixSettings hysterixSettings = hysterixContext.get().getHysterixSettings();
+        metadata.markFailure();
 
         if (hysterixSettings.isFallbackEnabled()) {
             logger.warn("onRecover - fallback enabled");
@@ -120,7 +121,6 @@ public abstract class HysterixCommand<T> {
 
     //this is the end of path
     private Throwable onRecoverFailure(final Throwable t) {
-        metadata.markFailure();
         metadata.markFallbackFailure();
         if (t instanceof TimeoutException) {
             metadata.markTimeout();
