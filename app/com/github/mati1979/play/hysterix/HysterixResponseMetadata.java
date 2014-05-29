@@ -50,13 +50,11 @@ public class HysterixResponseMetadata {
         executionEvents.add(HysterixEventType.RESPONSE_FROM_CACHE);
     }
 
+
+
+
     public boolean isExecutionComplete() {
-        return executionEvents.contains(HysterixEventType.SUCCESS)
-                || executionEvents.contains(HysterixEventType.FAILURE)
-                || executionEvents.contains(HysterixEventType.FALLBACK_SUCCESS)
-                || executionEvents.contains(HysterixEventType.TIMEOUT)
-                || executionEvents.contains(HysterixEventType.RESPONSE_FROM_CACHE)
-                ;
+        return executionEvents.size() > 0;
     }
 
     public boolean isSuccessfulExecution() {
@@ -67,7 +65,11 @@ public class HysterixResponseMetadata {
         return executionEvents.contains(HysterixEventType.FAILURE);
     }
 
-    public boolean isResponseFromFallback() {
+    public boolean isFallbackSuccess() {
+        return executionEvents.contains(HysterixEventType.FALLBACK_SUCCESS);
+    }
+
+    public boolean isFallbackFailed() {
         return executionEvents.contains(HysterixEventType.FALLBACK_SUCCESS);
     }
 

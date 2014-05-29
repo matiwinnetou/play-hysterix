@@ -3,6 +3,7 @@ package com.github.mati1979.play.hysterix;
 import play.libs.F;
 
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -10,12 +11,14 @@ public abstract class HysterixCommand<T> {
 
     private static final play.Logger.ALogger logger = play.Logger.of(HysterixCommand.class);
 
+    protected final String httpRequestId = UUID.randomUUID().toString();
+
     protected final AtomicReference<HysterixContext> hysterixContext;
 
     protected HysterixResponseMetadata metadata = new HysterixResponseMetadata();
 
     //transform response into domain object, client is responsible to call web service
-    //this method is used only if needed, execute will work out if the response can come from a cache
+    //this method is used only if needed, execute will tryCache out if the response can come from a cache
     protected abstract F.Promise<T> run();
 
     protected HysterixCommand(final HysterixContext context) {
@@ -32,10 +35,14 @@ public abstract class HysterixCommand<T> {
         return Optional.empty();
     }
 
+    public Optional<String> getRemoteUrl() {
+        return Optional.empty();
+    }
+
     public F.Promise<HysterixResponse<T>> execute() {
         metadata.getStopwatch().start();
 
-        return work().map(response -> onSuccess(response)).recover(t -> onRecover(t));
+        return tryCache().map(response -> onSuccess(response)).recover(t -> onRecover(t));
     }
 
     public HysterixResponseMetadata getMetadata() {
@@ -47,83 +54,52 @@ public abstract class HysterixCommand<T> {
     }
 
     //checks cache or does invoke run method
-    private F.Promise<T> work() {
-        Optional<F.Promise<T>> fromCache = getFromCache();
-        if (fromCache.isPresent()) {
-            return fromCache.get();
+    private F.Promise<T> tryCache() {
+        if (isRequestCachingDisabled() || !getRequestCacheKey().isPresent()) {
+            logger.debug("caching disabled:commandKey:" + getCommandKey(),"cacheKey:" + getCacheKey());
+            return callRemote();
         }
+        final String requestCacheKey = getRequestCacheKey().get();
+        logger.debug(String.format("requestCacheKey:%s", requestCacheKey));
 
+        final HysterixRequestCacheHolder hysterixRequestCacheHolder = hysterixContext.get().getHysterixRequestCacheHolder();
+        final HysterixHttpRequestsCache cache = hysterixRequestCacheHolder.getOrCreate(requestCacheKey);
+
+        return cache.addRequest(httpRequestId, this).execute(httpRequestId).map(cacheResp -> {
+            if (cacheResp.isCacheHit()) {
+                getMetadata().markResponseFromCache();
+            } else {
+                getMetadata().markSuccess();
+            }
+            return (T) cacheResp.getData();
+        });
+    }
+
+    private Optional<String> getRequestCacheKey() {
+        return getCacheKey().map(key -> String.format("%s.%s.%s", getCommandGroupKey().orElse("?"), getCommandKey(), key));
+    }
+
+    protected F.Promise<T> callRemote() {
+        logger.debug("calling remote system for command:" + getCommandKey() + ",cacheKey:" + getCacheKey());
         return run();
     }
 
     private HysterixResponse<T> onSuccess(final T response) {
-        logger.debug("onSuccess..." + response.hashCode());
-        metadata.getStopwatch().stop();
-        metadata.markSuccess();
-        putToCache(response);
+        logger.debug("onSuccess, command:" + getCommandKey() + ",key:" + getCacheKey());
         executionComplete();
 
         return HysterixResponse.create(response, metadata);
     }
 
     private void executionComplete() {
+        metadata.getStopwatch().stop();
         hysterixContext.get().getHysterixRequestLog().addExecutedCommand(this);
     }
 
-    private Optional<F.Promise<T>> getFromCache() {
-        logger.debug("getting from cache...");
-        if (isRequestCachingEnabled()) {
-            final HysterixRequestCacheHolder hysterixRequestCacheHolder = hysterixContext.get().getHysterixRequestCacheHolder();
-
-            logger.debug("getFromCache-hysterixRequestCacheHolder:" + hysterixRequestCacheHolder.hashCode());
-            logger.debug("isRequestCachingEnabled:" + isRequestCachingEnabled());
-            logger.debug("getCommandKey:" + getCommandKey());
-            final HysterixRequestCache<T> cache = hysterixRequestCacheHolder.getOrCreate(getCommandKey());
-            final String key = getCacheKey().get();
-            logger.debug("cacheKey:" + key);
-            logger.debug("cacheSize:" + cache.size());
-            final Optional<T> possibleValue = cache.get(key);
-            logger.debug("possibleValuePresent?:" + possibleValue.isPresent());
-            if (possibleValue.isPresent()) {
-                final T value = (T) possibleValue.get();
-                metadata.markResponseFromCache();
-                return Optional.of(F.Promise.pure(value));
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    private boolean putToCache(final T t) {
-        logger.debug("putting to cache...");
-
-        if (isRequestCachingEnabled()) {
-            final HysterixRequestCacheHolder hysterixRequestCacheHolder = hysterixContext.get().getHysterixRequestCacheHolder();
-            logger.debug("putToCache-hysterixRequestCacheHolder:" + hysterixRequestCacheHolder.hashCode());
-            final String key = getCacheKey().get();
-            logger.debug("cacheKey:" + key);
-            logger.debug("getCommandKey:" + getCommandKey());
-
-            final HysterixRequestCache<T> cache = hysterixRequestCacheHolder.getOrCreate(getCommandKey());
-            cache.put(key, t);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    private void onFailure(final Throwable t) {
-        logger.warn("onFailure handling in hysterix", t);
-        metadata.getStopwatch().stop();
-        metadata.markFailure();
-        executionComplete();
-    }
-
     private HysterixResponse<T> onRecover(final Throwable t) throws Throwable {
-        onFailure(t);
-        logger.warn("onRecover:" + t.getMessage());
+        logger.warn("onRecover handling in hysterix", t);
         final HysterixSettings hysterixSettings = hysterixContext.get().getHysterixSettings();
+        metadata.markFailure();
 
         if (hysterixSettings.isFallbackEnabled()) {
             logger.warn("onRecover - fallback enabled");
@@ -135,22 +111,22 @@ public abstract class HysterixCommand<T> {
         throw t;
     }
 
+    //this is the end of path
     private HysterixResponse<T> onRecoverSuccess(final T t) {
         metadata.markFallbackSuccess();
         executionComplete();
-        putToCache(t);
 
         return HysterixResponse.create(t, metadata);
     }
 
+    //this is the end of path
     private Throwable onRecoverFailure(final Throwable t) {
+        metadata.markFallbackFailure();
         if (t instanceof TimeoutException) {
             metadata.markTimeout();
         }
 
-        metadata.markFailure();
-        metadata.markFallbackFailure();
-
+        executionComplete();
         return t;
     }
 
@@ -160,5 +136,8 @@ public abstract class HysterixCommand<T> {
         return hysterixSettings.isRequestCacheEnabled() && getCacheKey().isPresent();
     }
 
+    private boolean isRequestCachingDisabled() {
+        return !isRequestCachingEnabled();
+    }
 
 }

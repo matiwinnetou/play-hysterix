@@ -2,6 +2,8 @@ package com.github.mati1979.play.hysterix;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import play.libs.F;
+import scala.concurrent.Future;
 
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -15,14 +17,29 @@ public class HysterixRequestLog {
 
     private LinkedBlockingQueue<HysterixCommand<?>> executedCommands = new LinkedBlockingQueue<>(MAX_STORAGE);
 
+    private LinkedBlockingQueue<scala.concurrent.Promise<Collection<HysterixCommand<?>>>> promises = new LinkedBlockingQueue<>();
+
     /* package */void addExecutedCommand(final HysterixCommand<?> command) {
         if (!executedCommands.offer(command)) {
             logger.warn("RequestLog ignoring command after reaching limit of " + MAX_STORAGE);
         }
+        logger.debug(getExecutedCommandsAsString());
     }
 
     public Collection<HysterixCommand<?>> getExecutedCommands() {
         return Collections.unmodifiableCollection(executedCommands);
+    }
+
+    public F.Promise<Collection<HysterixCommand<?>>> executedCommands() {
+        scala.concurrent.Promise<Collection<HysterixCommand<?>>> promise = scala.concurrent.Promise$.MODULE$.<Collection<HysterixCommand<?>>>apply();
+        promises.add(promise);
+        final Future<Collection<HysterixCommand<?>>> future = promise.future();
+
+        return F.Promise.wrap(future);
+    }
+
+    public void markRequestFinished() {
+        promises.stream().map(p -> p.success(getExecutedCommands()));
     }
 
     /**
@@ -65,6 +82,10 @@ public class HysterixRequestLog {
                     displayString.append("[Executed]");
                 }
 
+                if (command.getRemoteUrl().isPresent()) {
+                    displayString.append("[" + command.getRemoteUrl().orElse("") + "]");
+                }
+
                 String display = displayString.toString();
                 if (aggregatedCommandsExecuted.containsKey(display)) {
                     // increment the count
@@ -86,7 +107,6 @@ public class HysterixRequestLog {
                     // add it
                     aggregatedCommandExecutionTime.put(display, executionTime);
                 }
-
             }
 
             StringBuilder header = new StringBuilder();
@@ -103,6 +123,7 @@ public class HysterixRequestLog {
                 if (count > 1) {
                     header.append("x").append(count);
                 }
+                header.append("\n");
             }
             return header.toString();
         } catch (Exception e) {

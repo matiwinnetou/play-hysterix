@@ -8,19 +8,17 @@ public class HysterixRequestCacheHolder {
 
     private static final play.Logger.ALogger logger = play.Logger.of(HysterixRequestCacheHolder.class);
 
-    private Map<String, HysterixRequestCache> caches = Maps.newConcurrentMap();
+    private Map<String, HysterixHttpRequestsCache> caches = Maps.newConcurrentMap();
 
-    public <T> HysterixRequestCache<T> getOrCreate(final String key) {
-        HysterixRequestCache requestCache = caches.get(key);
+    public HysterixHttpRequestsCache getOrCreate(final String cacheKey) {
+        HysterixHttpRequestsCache requestCache = caches.get(cacheKey);
 
         if (requestCache == null) {
-            logger.debug("requestCache for key is empty,key:" + key);
-            requestCache = new HysterixRequestCache<T>();
+            logger.debug("requestCache for key is empty,key:" + cacheKey);
+            requestCache = new HysterixHttpRequestsCache(cacheKey);
         }
 
-        caches.put(key, requestCache);
-
-        logger.debug("cache.size:" + caches.size());
+        caches.put(cacheKey, requestCache);
 
         return requestCache;
     }
