@@ -53,7 +53,14 @@ public abstract class HysterixCommand<T> {
             final HysterixHttpRequestsCache cache = hysterixRequestCacheHolder.getOrCreate(getCommandKey());
             logger.debug(String.format("cache for group:%s command key:%s", getCommandGroupKey().orElse(null), getCommandKey()));
             if (isRequestCachingEnabled()) {
-                return cache.createRequest(this).executeRequest();
+                return cache.createRequest(this).executeRequest().map(cacheResp -> {
+                  if (cacheResp.isCacheHit()) {
+                      getMetadata().markResponseFromCache();
+                  } else {
+                      getMetadata().markSuccess();
+                  }
+                  return (T) cacheResp.getData();
+                });
             }
         }
 
@@ -67,7 +74,6 @@ public abstract class HysterixCommand<T> {
 
     private HysterixResponse<T> onSuccess(final T response) {
         logger.debug("onSuccess, command:" + getCommandKey() + ",key:" + getCacheKey());
-        metadata.markSuccess();
         executionComplete();
 
         return HysterixResponse.create(response, metadata);

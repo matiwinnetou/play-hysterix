@@ -26,7 +26,7 @@ public class HysterixHttpRequest {
         return requestId;
     }
 
-    public F.Promise executeRequest() {
+    public F.Promise<HysterixHttpRequestsCache.CacheResp> executeRequest() {
         return hysterixHttpRequestsCache.execute(requestId);
     }
 
