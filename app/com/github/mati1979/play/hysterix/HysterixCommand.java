@@ -4,7 +4,6 @@ import play.libs.F;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class HysterixCommand<T> {

@@ -2,14 +2,14 @@
 
 ## Intro
 
-Inspired by Hystrix, this is a library for play framework to implement scalability patterns
+Inspired by Hystrix, this is a library for play framework to implement scalability patterns.
 
 Netflix Hystrix is a library which implements number of distributed patterns such as graceful fallback, circuit breaker.
 Unfortunately, the library binds to rx-java (Observable) and for Play framework conversion to promises or adapter to
 Enumerator is a non trivial task. In addition hystrix has been developed initially with synchronous clients in mind and then
 that was extended to async client, in turn this mean API is suffering from being bound to sync access in number of places.
-Moreover, hystrix internally uses many ThreadLocal variables to store request state. We do not share a vision that it neither
-necessary nor recommended.
+Moreover, hystrix internally uses many ThreadLocal variables to store request state. We do not share a vision that
+using thread locals neither necessary nor recommended.
 
 ## Support
 
@@ -23,11 +23,11 @@ http://repo1.maven.org/maven2/pl/matisoft/play-hysterix_2.10/
 Sbt: "pl.matisoft" %% "play-hysterix" % "0.1.5.play23"
 
 ## Features:
-- fallback support
+- graceful handling support for commands
 - request based cache
 - async access to request cache for logging request metrics
 
-## Demo
+## Demo of request log output (could be shown in a debug mode at the end of page or in logs)
 Hysterix Log:
 OpenCms.OpenCms-modellverzeichnis - 8 ms - [SUCCESS] - http://localhost:9000/opencms/mock/modellverzeichnis/audi/a4.html
 OpenCms.OpenCms-modellverzeichnis - 0 ms - [SUCCESS, RESPONSE_FROM_CACHE] - http://localhost:9000/opencms/mock/modellverzeichnis/audi/a4.html
