@@ -35,7 +35,7 @@ public class HysterixRequestLog {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                promises.stream().forEach(p -> p.success(getExecutedCommands()));
+                notifyPromises();
             }
 
         }, hysterixSettings.getRequestLogInspectTimeoutInMs());
@@ -47,13 +47,23 @@ public class HysterixRequestLog {
         }
     }
 
+    private void notifyPromises() {
+        logger.debug("Notifying interested parties, partiesCount:" + promises.size());
+        promises.stream().forEach(p -> p.success(getExecutedCommands()));
+    }
+
+    public void markWebRequestEnd() {
+        logger.debug("WebRequest ends.");
+        notifyPromises();
+    }
+
     public Collection<HysterixCommand<?>> getExecutedCommands() {
         return Collections.unmodifiableCollection(executedCommands);
     }
 
     public F.Promise<Collection<HysterixCommand<?>>> executedCommands() {
         if (!hysterixSettings.isRequestLogInspect()) {
-            throw new RuntimeException("cannot inspect log, you have to enable request log inspect via hystrix settings");
+            throw new RuntimeException("Cannot inspect log, you have to enable request log inspect via hystrix settings");
         }
         scala.concurrent.Promise<Collection<HysterixCommand<?>>> promise =
                 scala.concurrent.Promise$.MODULE$.<Collection<HysterixCommand<?>>>apply();

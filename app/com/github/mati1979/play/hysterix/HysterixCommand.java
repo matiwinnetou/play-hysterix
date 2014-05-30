@@ -124,7 +124,9 @@ public abstract class HysterixCommand<T> {
     }
 
     private HysterixResponse<T> onRecoverSuccess(final T t) {
-        logger.debug("Successfully recovered remote call failure, command:" + getCommandKey() + ",url:" + getRemoteUrl().orElse("?") + ",message:" + t.toString());
+        logger.debug("Successfully recovered remote call failure, command:" + getCommandKey() + ",url:"
+                + getRemoteUrl().orElse("?") + ",message:" + t.toString());
+
         metadata.markFallbackSuccess();
         executionComplete();
 
@@ -134,9 +136,6 @@ public abstract class HysterixCommand<T> {
     private Throwable onRecoverFailure(final Throwable t) {
         logger.error("Recovery from remote call failure, url:" + getRemoteUrl().orElse("?"));
         metadata.markFallbackFailure();
-        if (t instanceof java.util.concurrent.TimeoutException) {
-            metadata.markTimeout();
-        }
 
         executionComplete();
         return t;

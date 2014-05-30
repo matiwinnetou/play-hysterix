@@ -10,15 +10,15 @@ public class HysterixRequestCacheHolder {
 
     private Map<String, HysterixHttpRequestsCache> caches = Maps.newConcurrentMap();
 
-    public HysterixHttpRequestsCache getOrCreate(final String cacheKey) {
-        HysterixHttpRequestsCache requestCache = caches.get(cacheKey);
+    public HysterixHttpRequestsCache getOrCreate(final String requestCacheKey) {
+        HysterixHttpRequestsCache requestCache = caches.get(requestCacheKey);
 
         if (requestCache == null) {
-            logger.debug("requestCache for key is empty,key:" + cacheKey);
-            requestCache = new HysterixHttpRequestsCache(cacheKey);
+            logger.debug("requestCache for key is empty,key:" + requestCacheKey);
+            requestCache = new HysterixHttpRequestsCache(requestCacheKey);
         }
 
-        caches.put(cacheKey, requestCache);
+        caches.put(requestCacheKey, requestCache);
 
         return requestCache;
     }

@@ -24,6 +24,16 @@ public class HysterixSettings {
         return requestLogInspectTimeoutInMs;
     }
 
+    @Override
+    public String toString() {
+        return "HysterixSettings{" +
+                "fallbackEnabled=" + fallbackEnabled +
+                ", requestCacheEnabled=" + requestCacheEnabled +
+                ", requestLogInspect=" + requestLogInspect +
+                ", requestLogInspectTimeoutInMs=" + requestLogInspectTimeoutInMs +
+                '}';
+    }
+
     public static class Builder {
 
         private HysterixSettings hysterixSettings;
