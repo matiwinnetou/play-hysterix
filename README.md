@@ -28,6 +28,10 @@ Sbt: "pl.matisoft" %% "play-hysterix" % "0.1.5.play23"
 - request based cache
 - async access to request cache for logging request metrics
 
+## CI:
+
+https://travis-ci.org/s-urbaniak/play-hysterix
+
 ## Demo of request log output (could be shown in a debug mode at the end of page or in logs)
 Hysterix Log:
 OpenCms.OpenCms-modellverzeichnis - 8 ms - [SUCCESS] - http://localhost:9000/opencms/mock/modellverzeichnis/audi/a4.html
@@ -47,6 +51,8 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - INSPECT THREAD SAFETY
 - metrics - global stats for all requests
 - stream of json (as a plugabble Play Controller) to be used by Hystrix webapp (in Hystrix compatible format so we can use their dashboard application)
+- fallbackTo(F.Promise<T> promise) - support, at the moment user cannot fallback to another promise, e.g. alternative webservice call
 - circuit breaker support
 - use akka to publish metrics to a central server
 - graphite reporter?
+
