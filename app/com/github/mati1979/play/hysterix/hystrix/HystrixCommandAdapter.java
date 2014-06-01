@@ -1,5 +1,6 @@
 package com.github.mati1979.play.hysterix.hystrix;
 
+import com.github.mati1979.play.hysterix.HysterixResponse;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixObservableCommand;
@@ -33,6 +34,19 @@ public abstract class HystrixCommandAdapter<T> {
     public Optional<String> getCacheKey() {
         return Optional.empty();
     }
+
+    public Optional<String> getRemoteUrl() {
+        return Optional.empty();
+    }
+
+    public F.Promise<HysterixResponse<T>> execute() {
+        return toPromise(proxy.observe()).map(resp -> HysterixResponse.create(resp, null));
+    }
+
+
+//    public HysterixResponseMetadata getMetadata() {
+//        return metadata;
+//    }
 
     public abstract String getCommandKey();
 
@@ -80,8 +94,6 @@ public abstract class HystrixCommandAdapter<T> {
                     .map(promise -> toObs(promise))
                     .orElseThrow(() -> new UnsupportedOperationException("no fallback"));
         }
-
-
 
     }
 
