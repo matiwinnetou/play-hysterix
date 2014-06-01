@@ -30,6 +30,10 @@ public class HysterixContext {
         return hysterixRequestLog;
     }
 
+    public static HysterixCacheMetricsHolder getHysterixCacheMetricsHolder() {
+        return hysterixCacheMetricsHolder;
+    }
+
     public static HysterixContext create(final HysterixSettings hysterixSettings) {
         logger.debug("Creating new HysterixContext:" + hysterixSettings);
 

@@ -14,7 +14,7 @@ public class HysterixCacheMetrics {
     private AtomicLong rollingCountResponsesFromCache = new AtomicLong();
     private AtomicLong rollingCountFallbackSuccess = new AtomicLong();
     private AtomicLong rollingCountFallbackFailure = new AtomicLong();
-    private AtomicLong rollingCountFallbackRejection = new AtomicLong();
+    //private AtomicLong rollingCountFallbackRejection = new AtomicLong();
     private AtomicLong rollingCountExceptionsThrown = new AtomicLong();
     private AtomicLong rollingCountSuccess = new AtomicLong();
     private AtomicLong rollingCountTimeout = new AtomicLong();
@@ -56,8 +56,6 @@ public class HysterixCacheMetrics {
         this.averageExecutionCount.incrementAndGet();
         final long executionTime = metadata.getExecutionTime(TimeUnit.MILLISECONDS);
         averageExecutionTime.set(computeAverage(executionTime));
-
-        //System.out.println("cache metrics" + this.toString());
     }
 
     private long computeAverage(final long newTime) {
@@ -74,9 +72,9 @@ public class HysterixCacheMetrics {
         return avg;
     }
 
-    public long getRollingCountFallbackRejection() {
-        return rollingCountFallbackRejection.get();
-    }
+//    public long getRollingCountFallbackRejection() {
+//        return rollingCountFallbackRejection.get();
+//    }
 
     public long getErrorCount() {
        return getRollingCountFailure() + getRollingTimeoutCount();
@@ -92,6 +90,22 @@ public class HysterixCacheMetrics {
 
     public long getRollingCountFailure() {
         return rollingCountFailure.get();
+    }
+
+    public long getRollingCountResponsesFromCache() {
+        return rollingCountResponsesFromCache.get();
+    }
+
+    public long getRollingCountFallbackSuccess() {
+        return rollingCountFallbackSuccess.get();
+    }
+
+    public long getRollingCountFallbackFailure() {
+        return rollingCountFallbackFailure.get();
+    }
+
+    public long getRollingCountExceptionsThrown() {
+        return rollingCountExceptionsThrown.get();
     }
 
     public long getRollingTimeoutCount() {
@@ -112,15 +126,15 @@ public class HysterixCacheMetrics {
         return averageExecutionTime.get();
     }
 
+
     @Override
     public String toString() {
         return "HysterixCacheMetrics{" +
-                "cacheMetricsKey=" + cacheMetricsKey +
+                "cacheMetricsKey='" + cacheMetricsKey + '\'' +
                 ", rollingCountFailure=" + rollingCountFailure +
                 ", rollingCountResponsesFromCache=" + rollingCountResponsesFromCache +
                 ", rollingCountFallbackSuccess=" + rollingCountFallbackSuccess +
                 ", rollingCountFallbackFailure=" + rollingCountFallbackFailure +
-                ", rollingCountFallbackRejection=" + rollingCountFallbackRejection +
                 ", rollingCountExceptionsThrown=" + rollingCountExceptionsThrown +
                 ", rollingCountSuccess=" + rollingCountSuccess +
                 ", rollingCountTimeout=" + rollingCountTimeout +
