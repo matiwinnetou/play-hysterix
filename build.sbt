@@ -2,11 +2,11 @@ organization := "pl.matisoft"
 
 name := "play-hysterix"
 
-version := "0.1.6.play23"
+version := "0.1.7.play23-SNAPSHOT"
 
 scalaVersion := "2.10.4"
 
-libraryDependencies ++= Seq()
+libraryDependencies ++= Seq("com.netflix.hystrix" % "hystrix-core" % "1.4.0-RC4")
 
 sonatypeSettings
   
