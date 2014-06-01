@@ -14,7 +14,6 @@ public class HysterixCacheMetrics {
     private AtomicLong rollingCountResponsesFromCache = new AtomicLong();
     private AtomicLong rollingCountFallbackSuccess = new AtomicLong();
     private AtomicLong rollingCountFallbackFailure = new AtomicLong();
-    //private AtomicLong rollingCountFallbackRejection = new AtomicLong();
     private AtomicLong rollingCountExceptionsThrown = new AtomicLong();
     private AtomicLong rollingCountSuccess = new AtomicLong();
     private AtomicLong rollingCountTimeout = new AtomicLong();
@@ -71,10 +70,6 @@ public class HysterixCacheMetrics {
 
         return avg;
     }
-
-//    public long getRollingCountFallbackRejection() {
-//        return rollingCountFallbackRejection.get();
-//    }
 
     public long getErrorCount() {
        return getRollingCountFailure() + getRollingTimeoutCount();

@@ -87,10 +87,6 @@ public abstract class HystrixCommandAdapter<T> {
                     .andCommandKey(HystrixCommandKey.Factory.asKey(HystrixCommandAdapter.this.getCommandKey())));
         }
 
-//        private HystrixCommandProperties.Setter setter() {
-//            return new HystrixCommandProperties.Setter().
-//        }
-
         @Override
         protected Observable<T> run() {
             return toObs(HystrixCommandAdapter.this.run());
