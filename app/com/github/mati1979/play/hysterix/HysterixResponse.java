@@ -51,4 +51,12 @@ public class HysterixResponse<T> {
         return metadata.getExecutionTime(timeUnit);
     }
 
+    @Override
+    public String toString() {
+        return "HysterixResponse{" +
+                "response=" + response +
+                ", metadata=" + metadata +
+                '}';
+    }
+
 }

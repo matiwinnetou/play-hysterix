@@ -1,12 +1,14 @@
 package com.github.mati1979.play.hysterix.hystrix;
 
+import com.github.mati1979.play.hysterix.HysterixContext;
 import com.github.mati1979.play.hysterix.HysterixResponse;
+import com.github.mati1979.play.hysterix.HysterixResponseMetadata;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixObservableCommand;
 import play.libs.F;
 import rx.Observable;
-import rx.Observable.OnSubscribe;
+import rx.Subscriber;
 
 import java.util.Optional;
 
@@ -18,6 +20,10 @@ public abstract class HystrixCommandAdapter<T> {
     protected abstract F.Promise<T> run();
 
     private Proxy proxy;
+
+    protected HystrixCommandAdapter(final HysterixContext hysterixContext) {
+        this.proxy = new Proxy();
+    }
 
     protected HystrixCommandAdapter() {
         this.proxy = new Proxy();
@@ -40,17 +46,19 @@ public abstract class HystrixCommandAdapter<T> {
     }
 
     public F.Promise<HysterixResponse<T>> execute() {
-        return toPromise(proxy.observe()).map(resp -> HysterixResponse.create(resp, null));
+        return toPromise(proxy.observe())
+                .map(resp -> HysterixResponse.create(resp, new HysterixResponseMetadata()));
     }
-
-
-//    public HysterixResponseMetadata getMetadata() {
-//        return metadata;
-//    }
 
     public abstract String getCommandKey();
 
-    public Optional<F.Promise<T>> getFallback() {
+    public Optional<F.Promise<T>> getFallbackTo() {
+        final Optional<T> fallback = getFallback();
+
+        return fallback.map(value -> F.Promise.pure(value));
+    }
+
+    public Optional<T> getFallback() {
         return Optional.empty();
     }
 
@@ -58,11 +66,11 @@ public abstract class HystrixCommandAdapter<T> {
         final scala.concurrent.Promise<T> scalaPromise = scala.concurrent.Promise$.MODULE$.<T>apply();
         os.subscribe(obj -> scalaPromise.success(obj), t -> scalaPromise.failure(t));
 
-        return F.Promise.wrap(scalaPromise.future());
+        return F.Promise.<T>wrap(scalaPromise.future());
     }
 
     public static <T> Observable<T> toObs(final F.Promise<T> promise) {
-        return Observable.<T>create((OnSubscribe) subscriber -> {
+        return Observable.create((Subscriber<? super T> subscriber) -> {
             promise.onRedeem(data -> {
                 subscriber.onNext(data);
                 subscriber.onCompleted();
@@ -74,9 +82,14 @@ public abstract class HystrixCommandAdapter<T> {
     private class Proxy extends HystrixObservableCommand<T> {
 
         public Proxy() {
-            super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey(HystrixCommandAdapter.this.getCommandGroupKey().orElse("")))
+            super(Setter
+                    .withGroupKey(HystrixCommandGroupKey.Factory.asKey(HystrixCommandAdapter.this.getCommandGroupKey().orElse("")))
                     .andCommandKey(HystrixCommandKey.Factory.asKey(HystrixCommandAdapter.this.getCommandKey())));
         }
+
+//        private HystrixCommandProperties.Setter setter() {
+//            return new HystrixCommandProperties.Setter().
+//        }
 
         @Override
         protected Observable<T> run() {
@@ -90,7 +103,7 @@ public abstract class HystrixCommandAdapter<T> {
 
         @Override
         protected Observable<T> getFallback() {
-            return HystrixCommandAdapter.this.getFallback()
+            return HystrixCommandAdapter.this.getFallbackTo()
                     .map(promise -> toObs(promise))
                     .orElseThrow(() -> new UnsupportedOperationException("no fallback"));
         }

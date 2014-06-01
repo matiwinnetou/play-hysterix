@@ -8,6 +8,8 @@ public class HysterixContext {
     private HysterixSettings hysterixSettings;
     private HysterixRequestLog hysterixRequestLog;
 
+    private static HysterixCacheMetricsHolder hysterixCacheMetricsHolder = new HysterixCacheMetricsHolder();
+
     public HysterixContext(final HysterixRequestCacheHolder hysterixRequestCacheHolder,
                            final HysterixSettings hysterixSettings,
                            final HysterixRequestLog hysterixRequestLog) {
@@ -31,7 +33,9 @@ public class HysterixContext {
     public static HysterixContext create(final HysterixSettings hysterixSettings) {
         logger.debug("Creating new HysterixContext:" + hysterixSettings);
 
-        return new HysterixContext(new HysterixRequestCacheHolder(), hysterixSettings, new HysterixRequestLog(hysterixSettings));
+        final HysterixRequestLog hysterixRequestLog = new HysterixRequestLog(hysterixSettings, hysterixCacheMetricsHolder);
+
+        return new HysterixContext(new HysterixRequestCacheHolder(), hysterixSettings,hysterixRequestLog);
     }
 
 }

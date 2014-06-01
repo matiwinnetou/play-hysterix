@@ -22,9 +22,11 @@ public class HysterixRequestLog {
     private LinkedBlockingQueue<scala.concurrent.Promise<Collection<HysterixCommand<?>>>> promises = new LinkedBlockingQueue<>();
 
     private final HysterixSettings hysterixSettings;
+    private final HysterixCacheMetricsHolder hysterixCacheMetricsHolder;
 
-    public HysterixRequestLog(final HysterixSettings hysterixSettings) {
+    public HysterixRequestLog(final HysterixSettings hysterixSettings, final HysterixCacheMetricsHolder hysterixCacheMetricsHolder) {
         this.hysterixSettings = hysterixSettings;
+        this.hysterixCacheMetricsHolder = hysterixCacheMetricsHolder;
         if (hysterixSettings.isRequestLogInspect()) {
             scheduleTimerTask();
         }
@@ -42,6 +44,8 @@ public class HysterixRequestLog {
     }
 
     /* package */void addExecutedCommand(final HysterixCommand<?> command) {
+        final HysterixCacheMetrics hysterixCacheMetrics = hysterixCacheMetricsHolder.getHysterixCacheMetrics(command);
+        hysterixCacheMetrics.notifyHysterixCommand(command.getMetadata());
         if (!executedCommands.offer(command)) {
             logger.warn("RequestLog ignoring command after reaching limit of " + MAX_STORAGE);
         }

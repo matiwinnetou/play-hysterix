@@ -100,7 +100,9 @@ public abstract class HysterixCommand<T> {
     }
 
     private void executionComplete() {
-        metadata.getStopwatch().stop();
+        if (metadata.getStopwatch().isRunning()) {
+            metadata.getStopwatch().stop();
+        }
         hysterixContext.get().getHysterixRequestLog().addExecutedCommand(this);
         logger.debug("Execution complete, url:" + getRemoteUrl().orElse("?"));
     }
@@ -136,6 +138,7 @@ public abstract class HysterixCommand<T> {
     private Throwable onRecoverFailure(final Throwable t) {
         logger.error("Recovery from remote call failure, url:" + getRemoteUrl().orElse("?"));
         metadata.markFallbackFailure();
+        metadata.markExceptionThrown(); //TODO what is different about this and fallback failure?
 
         executionComplete();
         return t;

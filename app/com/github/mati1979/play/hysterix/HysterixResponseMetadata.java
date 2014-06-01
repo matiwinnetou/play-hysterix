@@ -13,7 +13,7 @@ public class HysterixResponseMetadata {
 
     protected List<HysterixEventType> executionEvents = Lists.newArrayList();
 
-    private Stopwatch stopwatch = new Stopwatch();
+    private Stopwatch stopwatch = Stopwatch.createUnstarted();
 
     public HysterixResponseMetadata() {
     }
@@ -50,8 +50,13 @@ public class HysterixResponseMetadata {
         executionEvents.add(HysterixEventType.RESPONSE_FROM_CACHE);
     }
 
+    protected void markExceptionThrown() {
+        executionEvents.add(HysterixEventType.EXCEPTION_THROWN);
+    }
 
-
+    public boolean isExceptionThrown() {
+        return executionEvents.contains(HysterixEventType.EXCEPTION_THROWN);
+    }
 
     public boolean isExecutionComplete() {
         return executionEvents.size() > 0;
