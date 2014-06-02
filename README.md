@@ -13,8 +13,9 @@ using thread locals neither necessary nor recommended.
 
 ## Support
 
-Support for Play for Java 2.3.x and binary for Scala 2.10.x (should work in Play Scala version as well). 
+- Support for Play for Java 2.3.x and binary for Scala 2.10.x (should work in Play Scala version as well). 
 Scala 2.11.x binary on request.
+- Java 8 is required at the moment
 
 ## Status 
 status: alpha, use at own risk, a few alpha libraries pushed to maven central at:
@@ -31,6 +32,10 @@ Sbt: "pl.matisoft" %% "play-hysterix" % "0.1.7"
 ## CI:
 
 https://travis-ci.org/s-urbaniak/play-hysterix
+
+Authors:
+- Mateusz Szczap
+- Sergiusz Urbaniak
 
 ## Demo of request log output (could be shown in a debug mode at the end of page or in logs)
 Hysterix Log:
@@ -59,3 +64,6 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 ## REAL FUTURE
 - use akka to publish metrics to a central server
 - graphite reporter?
+
+## Issues
+- cyclic dep -> HysterixCommand <-> HysterixHttpRequestsCache
