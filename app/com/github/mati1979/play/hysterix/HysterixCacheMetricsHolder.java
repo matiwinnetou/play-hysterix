@@ -2,6 +2,8 @@ package com.github.mati1979.play.hysterix;
 
 import com.google.common.collect.Maps;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -24,6 +26,10 @@ public class HysterixCacheMetricsHolder {
         cacheMetricsMap.put(key, hysterixCacheMetrics);
 
         return hysterixCacheMetrics;
+    }
+
+    public synchronized Collection<HysterixCacheMetrics> getAll() {
+        return Collections.unmodifiableCollection(cacheMetricsMap.values());
     }
 
 }

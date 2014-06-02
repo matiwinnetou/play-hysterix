@@ -15,13 +15,13 @@ public abstract class HysterixCommand<T> {
 
     protected HysterixResponseMetadata metadata = new HysterixResponseMetadata();
 
-    //transform response into domain object, client is responsible to call web service
-    //this method is used only if needed, execute will tryCache out if the response can come from a cache
-    protected abstract F.Promise<T> run();
-
     protected HysterixCommand(final HysterixContext context) {
         this.hysterixContext = context;
     }
+
+    //transform response into domain object, client is responsible to call web service
+    //this method is used only if needed, execute will tryCache out if the response can come from a cache
+    protected abstract F.Promise<T> run();
 
     public String getCommandId() {
         return httpRequestId;

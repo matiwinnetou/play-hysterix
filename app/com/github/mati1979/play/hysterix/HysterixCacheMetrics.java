@@ -21,7 +21,7 @@ public class HysterixCacheMetrics {
     private AtomicLong averageExecutionTime = new AtomicLong();
     private AtomicLong averageExecutionCount = new AtomicLong();
 
-    public HysterixCacheMetrics(String cacheMetricsKey) {
+    public HysterixCacheMetrics(final String cacheMetricsKey) {
         this.cacheMetricsKey = cacheMetricsKey;
     }
 
@@ -120,7 +120,6 @@ public class HysterixCacheMetrics {
     public long getAverageExecutionTime() {
         return averageExecutionTime.get();
     }
-
 
     @Override
     public String toString() {
