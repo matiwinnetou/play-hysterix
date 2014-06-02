@@ -21,7 +21,7 @@ status: alpha, use at own risk, a few alpha libraries pushed to maven central at
 
 http://repo1.maven.org/maven2/pl/matisoft/play-hysterix_2.10/
 
-Sbt: "pl.matisoft" %% "play-hysterix" % "0.1.5.play23"
+Sbt: "pl.matisoft" %% "play-hysterix" % "0.1.7"
 
 ## Features:
 - graceful handling support for commands
@@ -53,6 +53,9 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - stream of json (as a plugabble Play Controller) to be used by Hystrix webapp (in Hystrix compatible format so we can use their dashboard application)
 - fallbackTo(F.Promise<T> promise) - support, at the moment user cannot fallback to another promise, e.g. alternative webservice call
 - circuit breaker support
+- JavaDocs
+- Unit tests
+
+## REAL FUTURE
 - use akka to publish metrics to a central server
 - graphite reporter?
-
