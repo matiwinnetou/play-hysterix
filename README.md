@@ -39,7 +39,7 @@ Sbt: "pl.matisoft" %% "play-hysterix" % "0.1.9"
 
 https://travis-ci.org/s-urbaniak/play-hysterix
 
-Authors:
+## Authors:
 - Mateusz Szczap
 - Sergiusz Urbaniak
 
