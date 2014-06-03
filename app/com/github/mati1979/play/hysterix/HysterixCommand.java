@@ -48,14 +48,19 @@ public abstract class HysterixCommand<T> {
     public F.Promise<HysterixResponse<T>> execute() {
         metadata.getStopwatch().start();
 
-        return tryCache().map(response -> onSuccess(response)).recover(t -> onRecover(t));
+        return tryCache().map(response -> onSuccess(response)).recoverWith(t -> onRecover(t));
     }
 
     public HysterixResponseMetadata getMetadata() {
         return metadata;
     }
 
-    //TODO this should return promise
+    public Optional<F.Promise<T>> getFallbackTo() {
+        return Optional.empty();
+    }
+
+    @Deprecated
+    //use fallbackTo instead, if you need to return a simple value, use F.Promise.pure
     public Optional<T> getFallback() {
         return Optional.empty();
     }
@@ -108,7 +113,7 @@ public abstract class HysterixCommand<T> {
         logger.debug("Execution complete, url:" + getRemoteUrl().orElse("?"));
     }
 
-    private HysterixResponse<T> onRecover(final Throwable t) throws Throwable {
+    private F.Promise<HysterixResponse<T>> onRecover(final Throwable t) throws Throwable {
         logger.warn("Remote call failed, url:" + getRemoteUrl().orElse("?"), t);
         final HysterixSettings hysterixSettings = hysterixContext.getHysterixSettings();
         metadata.markFailure();
@@ -119,7 +124,7 @@ public abstract class HysterixCommand<T> {
         if (hysterixSettings.isFallbackEnabled()) {
             logger.debug("onRecover - fallback enabled.");
 
-            return getFallback().map(response -> onRecoverSuccess(response))
+            return getFallbackTo().map(response -> onRecoverSuccess(response))
                     .orElseThrow(() -> onRecoverFailure(t));
         }
 
@@ -129,14 +134,13 @@ public abstract class HysterixCommand<T> {
         throw t;
     }
 
-    private HysterixResponse<T> onRecoverSuccess(final T t) {
-        logger.debug("Successfully recovered remote call failure, command:" + getCommandKey() + ",url:"
-                + getRemoteUrl().orElse("?") + ",message:" + t.toString());
+    private F.Promise<HysterixResponse<T>> onRecoverSuccess(final F.Promise<T> response) {
+        logger.debug("Successfully recovered remote call failure, command:" + getCommandKey() + ",url:" + getRemoteUrl().orElse("?"));
 
         metadata.markFallbackSuccess();
         executionComplete();
 
-        return HysterixResponse.create(t, metadata);
+        return response.map(r -> HysterixResponse.create(r, metadata));
     }
 
     private Throwable onRecoverFailure(final Throwable t) {
