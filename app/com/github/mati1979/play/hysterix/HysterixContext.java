@@ -8,16 +8,16 @@ public class HysterixContext {
     private final HysterixSettings hysterixSettings;
     private final HysterixRequestLog hysterixRequestLog;
 
-    private final HysterixCacheMetricsHolder hysterixCacheMetricsHolder;
+    private final HysterixGlobalStatisticsHolder hysterixGlobalStatisticsHolder;
 
     public HysterixContext(final HysterixRequestCacheHolder hysterixRequestCacheHolder,
                            final HysterixSettings hysterixSettings,
                            final HysterixRequestLog hysterixRequestLog,
-                           final HysterixCacheMetricsHolder hysterixCacheMetricsHolder) {
+                           final HysterixGlobalStatisticsHolder hysterixGlobalStatisticsHolder) {
         this.hysterixRequestCacheHolder = hysterixRequestCacheHolder;
         this.hysterixSettings = hysterixSettings;
         this.hysterixRequestLog = hysterixRequestLog;
-        this.hysterixCacheMetricsHolder = hysterixCacheMetricsHolder;
+        this.hysterixGlobalStatisticsHolder = hysterixGlobalStatisticsHolder;
     }
 
     public HysterixRequestCacheHolder getHysterixRequestCacheHolder() {
@@ -32,25 +32,25 @@ public class HysterixContext {
         return hysterixRequestLog;
     }
 
-    public HysterixCacheMetricsHolder getHysterixCacheMetricsHolder() {
-        return hysterixCacheMetricsHolder;
+    public HysterixGlobalStatisticsHolder getHysterixGlobalStatisticsHolder() {
+        return hysterixGlobalStatisticsHolder;
     }
 
     public static HysterixContext create(final HysterixSettings hysterixSettings) {
         logger.debug("Creating new HysterixContext:" + hysterixSettings);
 
-        final HysterixCacheMetricsHolder hysterixCacheMetricsHolder = new HysterixCacheMetricsHolder();
-        final HysterixRequestLog hysterixRequestLog = new HysterixRequestLog(hysterixSettings, hysterixCacheMetricsHolder);
+        final HysterixGlobalStatisticsHolder hysterixGlobalStatisticsHolder = new HysterixGlobalStatisticsHolder();
+        final HysterixRequestLog hysterixRequestLog = new HysterixRequestLog(hysterixSettings, hysterixGlobalStatisticsHolder);
 
-        return new HysterixContext(new HysterixRequestCacheHolder(), hysterixSettings, hysterixRequestLog, hysterixCacheMetricsHolder);
+        return new HysterixContext(new HysterixRequestCacheHolder(), hysterixSettings, hysterixRequestLog, hysterixGlobalStatisticsHolder);
     }
 
-    public static HysterixContext create(final HysterixSettings hysterixSettings, final HysterixCacheMetricsHolder hysterixCacheMetricsHolder) {
+    public static HysterixContext create(final HysterixSettings hysterixSettings, final HysterixGlobalStatisticsHolder hysterixGlobalStatisticsHolder) {
         logger.debug("Creating new HysterixContext:" + hysterixSettings);
 
-        final HysterixRequestLog hysterixRequestLog = new HysterixRequestLog(hysterixSettings, hysterixCacheMetricsHolder);
+        final HysterixRequestLog hysterixRequestLog = new HysterixRequestLog(hysterixSettings, hysterixGlobalStatisticsHolder);
 
-        return new HysterixContext(new HysterixRequestCacheHolder(), hysterixSettings, hysterixRequestLog, hysterixCacheMetricsHolder);
+        return new HysterixContext(new HysterixRequestCacheHolder(), hysterixSettings, hysterixRequestLog, hysterixGlobalStatisticsHolder);
     }
 
 }

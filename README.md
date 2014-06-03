@@ -32,8 +32,8 @@ Sbt: "pl.matisoft" %% "play-hysterix" % "0.1.9"
 - graceful handling support for commands
 - request based cache
 - async access to request cache for logging request metrics
-- initial support for metrics
-- safe - no memory leaks, hysterix context should be garbage collected after each request
+- initial rudimentary support for global metrics for all commands (HysterixGlobalStatistics)
+- safe - no memory leaks by design, hysterix context should be garbage collected after each request automatically
 
 ## CI:
 

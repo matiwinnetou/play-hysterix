@@ -6,9 +6,9 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Created by mszczap on 01.06.14.
  */
-public class HysterixCacheMetrics {
+public class HysterixGlobalStatistics {
 
-    private final String cacheMetricsKey;
+    private final String key;
 
     private AtomicLong rollingCountFailure = new AtomicLong();
     private AtomicLong rollingCountResponsesFromCache = new AtomicLong();
@@ -21,12 +21,12 @@ public class HysterixCacheMetrics {
     private AtomicLong averageExecutionTime = new AtomicLong();
     private AtomicLong averageExecutionCount = new AtomicLong();
 
-    public HysterixCacheMetrics(final String cacheMetricsKey) {
-        this.cacheMetricsKey = cacheMetricsKey;
+    public HysterixGlobalStatistics(final String key) {
+        this.key = key;
     }
 
-    public String getCacheMetricsKey() {
-        return cacheMetricsKey;
+    public String getKey() {
+        return key;
     }
 
     void notifyHysterixCommand(final HysterixResponseMetadata metadata) {
@@ -123,7 +123,7 @@ public class HysterixCacheMetrics {
     @Override
     public String toString() {
         return "HysterixCacheMetrics{" +
-                "cacheMetricsKey='" + cacheMetricsKey + '\'' +
+                "key='" + key + '\'' +
                 ", rollingCountFailure=" + rollingCountFailure +
                 ", rollingCountResponsesFromCache=" + rollingCountResponsesFromCache +
                 ", rollingCountFallbackSuccess=" + rollingCountFallbackSuccess +
