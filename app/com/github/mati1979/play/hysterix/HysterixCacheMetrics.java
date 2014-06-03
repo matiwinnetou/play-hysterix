@@ -61,18 +61,18 @@ public class HysterixCacheMetrics {
         final long oldAvg = averageExecutionTime.get();
         final long n = averageExecutionCount.get();
 
-        if (n == 1) {
+        if (n <= 1 || oldAvg <= 0) {
             return newTime;
         }
 
         long avg = oldAvg - (oldAvg / n);
-        avg += newTime / averageExecutionTime.get();
+        avg += newTime / oldAvg;
 
         return avg;
     }
 
     public long getErrorCount() {
-       return getRollingCountFailure() + getRollingTimeoutCount();
+        return getRollingCountFailure() + getRollingTimeoutCount();
     }
 
     public long getTotalCount() {

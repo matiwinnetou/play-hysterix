@@ -22,7 +22,7 @@ status: alpha, use at own risk, a few alpha libraries pushed to maven central at
 
 http://repo1.maven.org/maven2/pl/matisoft/play-hysterix_2.10/
 
-Sbt: "pl.matisoft" %% "play-hysterix" % "0.1.7"
+Sbt: "pl.matisoft" %% "play-hysterix" % "0.1.8"
 
 ## Features:
 - graceful handling support for commands
