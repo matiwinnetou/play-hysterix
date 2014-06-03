@@ -9,7 +9,11 @@ Unfortunately, the library binds to rx-java (Observable) and for Play framework 
 Enumerator is a non trivial task. In addition hystrix has been developed initially with synchronous clients in mind and then
 that was extended to async client, in turn this mean API is suffering from being bound to sync access in number of places.
 Moreover, hystrix internally uses many ThreadLocal variables to store request state. We do not share a vision that
-using thread locals neither necessary nor recommended.
+using thread locals neither necessary nor recommended. In addition it was for author of this library a big surprise how HttpRequestLog is initialized in hysterix,
+basically that without invoking shutdown method after initialize memory leaks could occur. Instead hysterix is a bit more verbose, one
+has to create manually or via AOP or filter HysterixContext, which will be passed to library and eventually garbage collected. 
+
+However, this library does not want to reinvent the wheel and initial plan is to be compatible with hystrix-dashboard json api, so that results can be displayed using Netlix UI tools. 
 
 ## Support
 
@@ -22,18 +26,20 @@ status: alpha, use at own risk, a few alpha libraries pushed to maven central at
 
 http://repo1.maven.org/maven2/pl/matisoft/play-hysterix_2.10/
 
-Sbt: "pl.matisoft" %% "play-hysterix" % "0.1.8"
+Sbt: "pl.matisoft" %% "play-hysterix" % "0.1.9"
 
 ## Features:
 - graceful handling support for commands
 - request based cache
 - async access to request cache for logging request metrics
+- initial rudimentary support for global metrics for all commands (HysterixGlobalStatistics)
+- safe - no memory leaks by design, hysterix context should be garbage collected after each request automatically
 
 ## CI:
 
 https://travis-ci.org/s-urbaniak/play-hysterix
 
-Authors:
+## Authors:
 - Mateusz Szczap
 - Sergiusz Urbaniak
 
