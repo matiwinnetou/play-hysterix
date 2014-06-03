@@ -8,6 +8,12 @@ public class HysterixSettings {
     private boolean requestLogInspect = false;
     private int requestLogInspectTimeoutInMs = 5000;
 
+    private boolean metricsInspect = true;
+
+    public boolean isMetricsInspect() {
+        return metricsInspect;
+    }
+
     public boolean isFallbackEnabled() {
         return fallbackEnabled;
     }
@@ -27,7 +33,8 @@ public class HysterixSettings {
     @Override
     public String toString() {
         return "HysterixSettings{" +
-                "fallbackEnabled=" + fallbackEnabled +
+                "metricsInspect=" + metricsInspect +
+                ", fallbackEnabled=" + fallbackEnabled +
                 ", requestCacheEnabled=" + requestCacheEnabled +
                 ", requestLogInspect=" + requestLogInspect +
                 ", requestLogInspectTimeoutInMs=" + requestLogInspectTimeoutInMs +
@@ -59,6 +66,11 @@ public class HysterixSettings {
 
         public Builder withRequestLogInspectTimeoutInMs(final int hysterixLogInspectTimeoutInMs) {
             hysterixSettings.requestLogInspectTimeoutInMs = hysterixLogInspectTimeoutInMs;
+            return this;
+        }
+
+        public Builder withMetricsInspect(final boolean metricsInspect) {
+            hysterixSettings.metricsInspect = metricsInspect;
             return this;
         }
 

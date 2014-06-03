@@ -44,8 +44,10 @@ public class HysterixRequestLog {
     }
 
     /* package */void addExecutedCommand(final HysterixCommand<?> command) {
-        final HysterixCacheMetrics hysterixCacheMetrics = hysterixCacheMetricsHolder.getHysterixCacheMetrics(command);
-        hysterixCacheMetrics.notifyHysterixCommand(command.getMetadata());
+        if (hysterixSettings.isMetricsInspect()) {
+            final HysterixCacheMetrics hysterixCacheMetrics = hysterixCacheMetricsHolder.getHysterixCacheMetrics(command);
+            hysterixCacheMetrics.notifyHysterixCommand(command.getMetadata());
+        }
         if (!executedCommands.offer(command)) {
             logger.warn("RequestLog ignoring command after reaching limit of " + MAX_STORAGE);
         }

@@ -29,7 +29,7 @@ public class HysterixCacheMetrics {
         return cacheMetricsKey;
     }
 
-    synchronized void notifyHysterixCommand(final HysterixResponseMetadata metadata) {
+    void notifyHysterixCommand(final HysterixResponseMetadata metadata) {
         if (metadata.isSuccessfulExecution()) {
             rollingCountSuccess.incrementAndGet();
         }
@@ -52,15 +52,14 @@ public class HysterixCacheMetrics {
             rollingCountResponsesFromCache.incrementAndGet();
         }
 
-        this.averageExecutionCount.incrementAndGet();
-        final long executionTime = metadata.getExecutionTime(TimeUnit.MILLISECONDS);
-        averageExecutionTime.set(computeAverage(executionTime));
+        final long avg = computeAverage(averageExecutionTime.get(),
+                metadata.getExecutionTime(TimeUnit.MILLISECONDS),
+                averageExecutionCount.incrementAndGet());
+
+        averageExecutionTime.set(avg);
     }
 
-    private long computeAverage(final long newTime) {
-        final long oldAvg = averageExecutionTime.get();
-        final long n = averageExecutionCount.get();
-
+    private long computeAverage(final long oldAvg, final long newTime, final long n) {
         if (n <= 1 || oldAvg <= 0) {
             return newTime;
         }

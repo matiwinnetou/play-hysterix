@@ -13,7 +13,7 @@ public abstract class HysterixCommand<T> {
 
     protected final HysterixContext hysterixContext;
 
-    protected HysterixResponseMetadata metadata = new HysterixResponseMetadata();
+    protected final HysterixResponseMetadata metadata = new HysterixResponseMetadata();
 
     protected HysterixCommand(final HysterixContext context) {
         this.hysterixContext = context;
@@ -55,6 +55,7 @@ public abstract class HysterixCommand<T> {
         return metadata;
     }
 
+    //TODO this should return promise
     public Optional<T> getFallback() {
         return Optional.empty();
     }
@@ -78,6 +79,7 @@ public abstract class HysterixCommand<T> {
             if (cacheResp.isCacheHit()) {
                 getMetadata().markResponseFromCache();
             }
+
             return (T) cacheResp.getData();
         });
     }
@@ -121,6 +123,9 @@ public abstract class HysterixCommand<T> {
                     .orElseThrow(() -> onRecoverFailure(t));
         }
 
+        metadata.markExceptionThrown();
+        logger.error("Remote call failed, url:" + getRemoteUrl().orElse("?"), t);
+
         throw t;
     }
 
@@ -137,7 +142,7 @@ public abstract class HysterixCommand<T> {
     private Throwable onRecoverFailure(final Throwable t) {
         logger.error("Recovery from remote call failure, url:" + getRemoteUrl().orElse("?"));
         metadata.markFallbackFailure();
-        metadata.markExceptionThrown(); //TODO what is different about this and fallback failure?
+        metadata.markExceptionThrown();
 
         executionComplete();
         return t;
