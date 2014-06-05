@@ -19,6 +19,8 @@ val commonSettings = Seq(
 
 lazy val main = (project in file(".")).settings(commonSettings:_*).enablePlugins(PlayJava)
 
+libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % Test
+
 publishTo := {
     val nexus = "https://oss.sonatype.org/"
     if (isSnapshot.value)

@@ -18,6 +18,8 @@ public class HysterixGlobalStatistics {
     private AtomicLong rollingCountSuccess = new AtomicLong();
     private AtomicLong rollingCountTimeout = new AtomicLong();
 
+    private AtomicLong sum = new AtomicLong(0);
+
     private AtomicLong averageExecutionTime = new AtomicLong();
     private AtomicLong averageExecutionCount = new AtomicLong();
 
@@ -29,7 +31,7 @@ public class HysterixGlobalStatistics {
         return key;
     }
 
-    void notifyHysterixCommand(final HysterixResponseMetadata metadata) {
+    void notify(final HysterixResponseMetadata metadata) {
         if (metadata.isSuccessfulExecution()) {
             rollingCountSuccess.incrementAndGet();
         }
@@ -51,23 +53,22 @@ public class HysterixGlobalStatistics {
         if (metadata.isResponseFromCache()) {
             rollingCountResponsesFromCache.incrementAndGet();
         }
-
-        final long avg = computeAverage(averageExecutionTime.get(),
-                metadata.getExecutionTime(TimeUnit.MILLISECONDS),
-                averageExecutionCount.incrementAndGet());
-
-        averageExecutionTime.set(avg);
+        calculateAverage(metadata);
     }
 
-    private long computeAverage(final long oldAvg, final long newTime, final long n) {
-        if (n <= 1 || oldAvg <= 0) {
+    private synchronized void calculateAverage(final HysterixResponseMetadata metadata) {
+        final long executionTime = metadata.getExecutionTime(TimeUnit.MILLISECONDS);
+        averageExecutionCount.getAndUpdate(operand -> operand + 1);
+        sum.getAndUpdate(operand -> operand + executionTime);
+        averageExecutionTime.set(computeAverage(executionTime));
+    }
+
+    private Long computeAverage(final long newTime) {
+        if (averageExecutionCount.get() <= 1) {
             return newTime;
         }
 
-        long avg = oldAvg - (oldAvg / n);
-        avg += newTime / oldAvg;
-
-        return avg;
+        return sum.get() / averageExecutionCount.get();
     }
 
     public long getErrorCount() {
