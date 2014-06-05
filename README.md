@@ -35,6 +35,9 @@ Sbt: "pl.matisoft" %% "play-hysterix" % "0.1.11"
 - initial rudimentary support for global metrics for all commands (HysterixGlobalStatistics)
 - safe - no memory leaks by design, hysterix context should be garbage collected after each request automatically
 
+## Travis
+[![Build Status](https://travis-ci.org/mati1979/play-hysterix.svg?branch=master)](https://travis-ci.org/mati1979/play-hysterix)
+
 ## Authors:
 - Mateusz Szczap
 - Sergiusz Urbaniak
