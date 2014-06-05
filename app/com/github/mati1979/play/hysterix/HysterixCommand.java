@@ -59,12 +59,6 @@ public abstract class HysterixCommand<T> {
         return Optional.empty();
     }
 
-    @Deprecated
-    //use fallbackTo instead, if you need to return a simple value, use F.Promise.pure
-    public Optional<T> getFallback() {
-        return Optional.empty();
-    }
-
     //checks cache or does invoke run method
     private F.Promise<T> tryCache() {
         if (isRequestCachingDisabled() || !getRequestCacheKey().isPresent()) {
@@ -80,7 +74,6 @@ public abstract class HysterixCommand<T> {
         final HysterixHttpRequestsCache cache = hysterixRequestCacheHolder.getOrCreate(requestCacheKey);
 
         return cache.addRequest(httpRequestId, this).execute(httpRequestId).map(cacheResp -> {
-            getMetadata().markSuccess();
             if (cacheResp.isCacheHit()) {
                 getMetadata().markResponseFromCache();
             }
@@ -100,6 +93,8 @@ public abstract class HysterixCommand<T> {
 
     private HysterixResponse<T> onSuccess(final T response) {
         logger.debug("Successful response url:" + getRemoteUrl().orElse("?"));
+        getMetadata().markSuccess();
+
         executionComplete();
 
         return HysterixResponse.create(response, metadata);
