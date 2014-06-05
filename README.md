@@ -22,7 +22,7 @@ Scala 2.11.x binary on request.
 - Java 8 is required at the moment
 
 ## Status 
-status: alpha, use at own risk, a few alpha libraries pushed to maven central at:
+status: in development, use at own risk, a few early libraries pushed to maven central at:
 
 http://repo1.maven.org/maven2/pl/matisoft/play-hysterix_2.10/
 
@@ -34,10 +34,6 @@ Sbt: "pl.matisoft" %% "play-hysterix" % "0.1.11"
 - async access to request cache for logging request metrics
 - initial rudimentary support for global metrics for all commands (HysterixGlobalStatistics)
 - safe - no memory leaks by design, hysterix context should be garbage collected after each request automatically
-
-## CI:
-
-https://travis-ci.org/s-urbaniak/play-hysterix
 
 ## Authors:
 - Mateusz Szczap
