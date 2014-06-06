@@ -58,8 +58,8 @@ MOBILE_SVC_API.FetchMakesCommand - 101 ms - [SUCCESS] - http://m.mobile.de/svc/r
 MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - http://m.mobile.de/svc/r/makes/Car
 
 ## Version history
-0.1.11 - bug fix for average execution time calculation
-0.1.12 - bug fix in case request caching was disabled, markSuccess was never invoked.
+- 0.1.11 - bug fix for average execution time calculation
+- 0.1.12 - bug fix in case request caching was disabled, markSuccess was never invoked.
 
 ## TODO
 - INSPECT THREAD SAFETY of the library
