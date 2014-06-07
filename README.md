@@ -62,6 +62,7 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - 0.1.12 - bug fix in case request caching was disabled, markSuccess was never invoked.
 
 ## TODO
+- Generics
 - INSPECT THREAD SAFETY of the library
 - metrics - global stats for all requests - this works now for simple metrics
 - stream of json (as a plugabble Play Controller) to be used by Hystrix webapp (in Hystrix compatible format so we can use their dashboard application)

@@ -1,5 +1,6 @@
 package com.github.mati1979.play.hysterix;
 
+import com.github.mati1979.play.hysterix.event.HysterixCommandEvent;
 import play.libs.F;
 
 import java.util.Optional;
@@ -104,8 +105,9 @@ public abstract class HysterixCommand<T> {
         if (metadata.getStopwatch().isRunning()) {
             metadata.getStopwatch().stop();
         }
-        hysterixContext.getHysterixRequestLog().addExecutedCommand(this);
+
         logger.debug("Execution complete, url:" + getRemoteUrl().orElse("?"));
+        hysterixContext.getEventBus().post(new HysterixCommandEvent(this));
     }
 
     private F.Promise<HysterixResponse<T>> onRecover(final Throwable t) throws Throwable {
@@ -135,7 +137,7 @@ public abstract class HysterixCommand<T> {
         metadata.markFallbackSuccess();
         executionComplete();
 
-        return response.map(r -> HysterixResponse.create(r, metadata));
+        return response.map(data -> HysterixResponse.create(data, metadata));
     }
 
     private Throwable onRecoverFailure(final Throwable t) {

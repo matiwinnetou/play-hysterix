@@ -1,5 +1,8 @@
 package com.github.mati1979.play.hysterix;
 
+import com.github.mati1979.play.hysterix.stats.HysterixGlobalStatisticsHolder;
+import com.google.common.eventbus.EventBus;
+
 public class HysterixContext {
 
     private static final play.Logger.ALogger logger = play.Logger.of(HysterixContext.class);
@@ -39,8 +42,8 @@ public class HysterixContext {
     public static HysterixContext create(final HysterixSettings hysterixSettings) {
         logger.debug("Creating new HysterixContext:" + hysterixSettings);
 
-        final HysterixGlobalStatisticsHolder hysterixGlobalStatisticsHolder = new HysterixGlobalStatisticsHolder();
-        final HysterixRequestLog hysterixRequestLog = new HysterixRequestLog(hysterixSettings, hysterixGlobalStatisticsHolder);
+        final HysterixGlobalStatisticsHolder hysterixGlobalStatisticsHolder = new HysterixGlobalStatisticsHolder(HysterixEventBus.EVENT_BUS, hysterixSettings);
+        final HysterixRequestLog hysterixRequestLog = new HysterixRequestLog(hysterixSettings, HysterixEventBus.EVENT_BUS);
 
         return new HysterixContext(new HysterixRequestCacheHolder(), hysterixSettings, hysterixRequestLog, hysterixGlobalStatisticsHolder);
     }
@@ -48,7 +51,7 @@ public class HysterixContext {
     public static HysterixContext create(final HysterixSettings hysterixSettings, final HysterixGlobalStatisticsHolder hysterixGlobalStatisticsHolder) {
         logger.debug("Creating new HysterixContext:" + hysterixSettings);
 
-        final HysterixRequestLog hysterixRequestLog = new HysterixRequestLog(hysterixSettings, hysterixGlobalStatisticsHolder);
+        final HysterixRequestLog hysterixRequestLog = new HysterixRequestLog(hysterixSettings, HysterixEventBus.EVENT_BUS);
 
         return new HysterixContext(new HysterixRequestCacheHolder(), hysterixSettings, hysterixRequestLog, hysterixGlobalStatisticsHolder);
     }

@@ -1,4 +1,6 @@
-package com.github.mati1979.play.hysterix;
+package com.github.mati1979.play.hysterix.stats;
+
+import com.github.mati1979.play.hysterix.HysterixResponseMetadata;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;

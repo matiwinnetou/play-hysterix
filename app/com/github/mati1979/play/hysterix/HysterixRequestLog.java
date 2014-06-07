@@ -1,5 +1,8 @@
 package com.github.mati1979.play.hysterix;
 
+import com.github.mati1979.play.hysterix.event.HysterixCommandEvent;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.libs.F;
@@ -22,12 +25,12 @@ public class HysterixRequestLog {
     private LinkedBlockingQueue<scala.concurrent.Promise<Collection<HysterixCommand<?>>>> promises = new LinkedBlockingQueue<>();
 
     private final HysterixSettings hysterixSettings;
-    private final HysterixGlobalStatisticsHolder hysterixGlobalStatisticsHolder;
 
-    public HysterixRequestLog(final HysterixSettings hysterixSettings, final HysterixGlobalStatisticsHolder hysterixGlobalStatisticsHolder) {
+    public HysterixRequestLog(final HysterixSettings hysterixSettings,
+                              final EventBus eventBus) {
         this.hysterixSettings = hysterixSettings;
-        this.hysterixGlobalStatisticsHolder = hysterixGlobalStatisticsHolder;
-        if (hysterixSettings.isRequestLogInspect()) {
+        eventBus.register(new Subscriber());
+        if (hysterixSettings.isLogRequestStatistics()) {
             scheduleTimerTask();
         }
     }
@@ -40,14 +43,10 @@ public class HysterixRequestLog {
                 notifyPromises();
             }
 
-        }, hysterixSettings.getRequestLogInspectTimeoutInMs());
+        }, hysterixSettings.getLogRequestStatisticsTimeoutMs());
     }
 
-    /* package */void addExecutedCommand(final HysterixCommand<?> command) {
-        if (hysterixSettings.isMetricsInspect()) {
-            final HysterixGlobalStatistics hysterixGlobalStatistics = hysterixGlobalStatisticsHolder.getHysterixCacheMetrics(command);
-            hysterixGlobalStatistics.notify(command.getMetadata());
-        }
+    private void addExecutedCommand(final HysterixCommand<?> command) {
         if (!executedCommands.offer(command)) {
             logger.warn("RequestLog ignoring command after reaching limit of " + MAX_STORAGE);
         }
@@ -68,7 +67,7 @@ public class HysterixRequestLog {
     }
 
     public F.Promise<Collection<HysterixCommand<?>>> executedCommands() {
-        if (!hysterixSettings.isRequestLogInspect()) {
+        if (!hysterixSettings.isLogRequestStatistics()) {
             throw new RuntimeException("Cannot inspect log, you have to enable request log inspect via hystrix settings");
         }
         scala.concurrent.Promise<Collection<HysterixCommand<?>>> promise =
@@ -79,6 +78,15 @@ public class HysterixRequestLog {
         final Future<Collection<HysterixCommand<?>>> future = promise.future();
 
         return F.Promise.wrap(future);
+    }
+
+    private final class Subscriber {
+
+        @Subscribe
+        public void onEvent(final HysterixCommandEvent hysterixCommandEvent) {
+            addExecutedCommand(hysterixCommandEvent.getHysterixCommand());
+        }
+
     }
 
 }

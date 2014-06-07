@@ -5,13 +5,13 @@ public class HysterixSettings {
     private boolean fallbackEnabled = true;
     private boolean requestCacheEnabled = true;
 
-    private boolean requestLogInspect = false;
-    private int requestLogInspectTimeoutInMs = 5000;
+    private boolean logRequestStatistics = false;
+    private int logRequestStatisticsTimeoutMs = 5000; //t seconds
 
-    private boolean metricsInspect = true;
+    private boolean logGlobalStatistics = true;
 
-    public boolean isMetricsInspect() {
-        return metricsInspect;
+    public boolean isLogGlobalStatistics() {
+        return logGlobalStatistics;
     }
 
     public boolean isFallbackEnabled() {
@@ -22,23 +22,12 @@ public class HysterixSettings {
         return requestCacheEnabled;
     }
 
-    public boolean isRequestLogInspect() {
-        return requestLogInspect;
+    public boolean isLogRequestStatistics() {
+        return logRequestStatistics;
     }
 
-    public int getRequestLogInspectTimeoutInMs() {
-        return requestLogInspectTimeoutInMs;
-    }
-
-    @Override
-    public String toString() {
-        return "HysterixSettings{" +
-                "metricsInspect=" + metricsInspect +
-                ", fallbackEnabled=" + fallbackEnabled +
-                ", requestCacheEnabled=" + requestCacheEnabled +
-                ", requestLogInspect=" + requestLogInspect +
-                ", requestLogInspectTimeoutInMs=" + requestLogInspectTimeoutInMs +
-                '}';
+    public int getLogRequestStatisticsTimeoutMs() {
+        return logRequestStatisticsTimeoutMs;
     }
 
     public static class Builder {
@@ -59,18 +48,18 @@ public class HysterixSettings {
             return this;
         }
 
-        public Builder withRequestLogInspect(final boolean hysterixLogInspect) {
-            hysterixSettings.requestLogInspect = hysterixLogInspect;
+        public Builder withLogGlobalStatistics(final boolean logGlobalStatistics) {
+            hysterixSettings.logGlobalStatistics = logGlobalStatistics;
             return this;
         }
 
-        public Builder withRequestLogInspectTimeoutInMs(final int hysterixLogInspectTimeoutInMs) {
-            hysterixSettings.requestLogInspectTimeoutInMs = hysterixLogInspectTimeoutInMs;
+        public Builder withLogRequestStatistics(final boolean logRequestStatistics) {
+            hysterixSettings.logRequestStatistics = logRequestStatistics;
             return this;
         }
 
-        public Builder withMetricsInspect(final boolean metricsInspect) {
-            hysterixSettings.metricsInspect = metricsInspect;
+        public Builder withLogRequestStatisticsTimeoutMs(final int logRequestStatisticsTimeoutMs) {
+            hysterixSettings.logRequestStatisticsTimeoutMs = logRequestStatisticsTimeoutMs;
             return this;
         }
 
