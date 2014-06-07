@@ -107,7 +107,7 @@ public abstract class HysterixCommand<T> {
         }
 
         logger.debug("Execution complete, url:" + getRemoteUrl().orElse("?"));
-        hysterixContext.getEventBus().post(new HysterixCommandEvent(this));
+        HysterixEventBus.EVENT_BUS.post(new HysterixCommandEvent(this));
     }
 
     private F.Promise<HysterixResponse<T>> onRecover(final Throwable t) throws Throwable {
