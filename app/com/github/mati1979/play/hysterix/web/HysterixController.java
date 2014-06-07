@@ -40,6 +40,8 @@ public class HysterixController extends Controller {
         @Subscribe
         public void onEvent(final HysterixStatisticsEvent event) {
             out.write(event.toString());
+            out.write("\n");
+            out.write("\n");
         }
 
     }

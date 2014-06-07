@@ -23,4 +23,12 @@ public class HysterixStatisticsEvent {
         return stats;
     }
 
+    @Override
+    public String toString() {
+        return "HysterixStatisticsEvent{" +
+                "event=" + event +
+                ", stats=" + stats +
+                '}';
+    }
+
 }

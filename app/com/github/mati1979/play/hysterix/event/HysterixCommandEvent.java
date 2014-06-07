@@ -22,4 +22,12 @@ public class HysterixCommandEvent {
         return currentTime;
     }
 
+    @Override
+    public String toString() {
+        return "HysterixCommandEvent{" +
+                "command=" + command +
+                ", currentTime=" + currentTime +
+                '}';
+    }
+
 }

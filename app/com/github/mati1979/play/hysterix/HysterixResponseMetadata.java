@@ -90,4 +90,12 @@ public class HysterixResponseMetadata {
         return stopwatch.elapsed(timeUnit);
     }
 
+    @Override
+    public String toString() {
+        return "HysterixResponseMetadata{" +
+                "executionEvents=" + executionEvents +
+                ", stopwatch.isRunning" + stopwatch.isRunning() +
+                '}';
+    }
+
 }

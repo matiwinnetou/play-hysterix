@@ -159,4 +159,11 @@ public abstract class HysterixCommand<T> {
         return !isRequestCachingEnabled();
     }
 
+    @Override
+    public String toString() {
+        return "HysterixCommand{" +
+                "httpRequestId='" + httpRequestId + '\'' +
+                ", metadata=" + metadata +
+                '}';
+    }
 }
