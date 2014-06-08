@@ -31,6 +31,10 @@ public class HysterixResponse<T> {
         return metadata.isSuccessfulExecution();
     }
 
+    public boolean isError() {
+        return metadata.isError();
+    }
+
     public boolean isFailedExecution() {
         return metadata.isFailedExecution();
     }

@@ -1,7 +1,6 @@
 package com.github.mati1979.play.hysterix;
 
 import com.github.mati1979.play.hysterix.stats.HysterixGlobalStatisticsHolder;
-import com.google.common.eventbus.EventBus;
 
 public class HysterixContext {
 
@@ -48,7 +47,8 @@ public class HysterixContext {
         return new HysterixContext(new HysterixRequestCacheHolder(), hysterixSettings, hysterixRequestLog, hysterixGlobalStatisticsHolder);
     }
 
-    public static HysterixContext create(final HysterixSettings hysterixSettings, final HysterixGlobalStatisticsHolder hysterixGlobalStatisticsHolder) {
+    public static HysterixContext create(final HysterixSettings hysterixSettings,
+                                         final HysterixGlobalStatisticsHolder hysterixGlobalStatisticsHolder) {
         logger.debug("Creating new HysterixContext:" + hysterixSettings);
 
         final HysterixRequestLog hysterixRequestLog = new HysterixRequestLog(hysterixSettings, HysterixEventBus.EVENT_BUS);

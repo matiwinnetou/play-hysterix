@@ -74,11 +74,11 @@ public class HysterixGlobalStatistics {
     }
 
     public long getErrorCount() {
-        return getRollingCountFailure() + getRollingTimeoutCount();
+        return getRollingCountFailure() + getRollingTimeoutCount() + getRollingCountExceptionsThrown();
     }
 
     public long getTotalCount() {
-        return getRollingCountSuccess() + getRollingCountFailure() + getRollingTimeoutCount();
+        return getRollingCountSuccess() + getRollingCountFailure() + getRollingTimeoutCount() + getRollingCountExceptionsThrown();
     }
 
     public long getRollingCountSuccess() {

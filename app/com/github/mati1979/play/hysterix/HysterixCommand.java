@@ -113,7 +113,7 @@ public abstract class HysterixCommand<T> {
     private F.Promise<HysterixResponse<T>> onRecover(final Throwable t) throws Throwable {
         logger.warn("Remote call failed, url:" + getRemoteUrl().orElse("?"), t);
         final HysterixSettings hysterixSettings = hysterixContext.getHysterixSettings();
-        metadata.markFailure();
+        //metadata.markFailure();
         if (t instanceof java.util.concurrent.TimeoutException) {
             logger.warn("Timeout from service, url:" + getRemoteUrl().orElse("?"));
             metadata.markTimeout();
@@ -121,11 +121,18 @@ public abstract class HysterixCommand<T> {
         if (hysterixSettings.isFallbackEnabled()) {
             logger.debug("onRecover - fallback enabled.");
 
+            if (!metadata.isError()) {
+                metadata.markFailure();
+            }
+
             return getFallbackTo().map(response -> onRecoverSuccess(response))
                     .orElseThrow(() -> onRecoverFailure(t));
         }
 
-        metadata.markExceptionThrown();
+        if (!metadata.isError()) {
+            metadata.markExceptionThrown();
+        }
+
         logger.error("Remote call failed, url:" + getRemoteUrl().orElse("?"), t);
 
         throw t;

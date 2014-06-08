@@ -70,6 +70,12 @@ public class HysterixResponseMetadata {
         return executionEvents.contains(HysterixEventType.FAILURE);
     }
 
+    public boolean isError() {
+        return executionEvents.contains(HysterixEventType.FAILURE)
+                || executionEvents.contains(HysterixEventType.EXCEPTION_THROWN)
+                || executionEvents.contains(HysterixEventType.TIMEOUT);
+    }
+
     public boolean isFallbackSuccess() {
         return executionEvents.contains(HysterixEventType.FALLBACK_SUCCESS);
     }
