@@ -57,15 +57,14 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 ## Version history
 - 0.1.11 - bug fix for average execution time calculation
 - 0.1.12 - bug fix in case request caching was disabled, markSuccess was never invoked.
+- 0.2.0 - initial support for streaming hysterix stream to hystrix dashboard UI
 
 ## TODO
 - INSPECT THREAD SAFETY of the library
-- metrics - global stats for all requests - this works now for simple metrics
-- stream of json (as a plugabble Play Controller) to be used by Hystrix webapp (in Hystrix compatible format so we can use their dashboard application)
+- extend metrics to contain all that hystrix dashboard expects, e.g. percentiles, median, etc
 - circuit breaker support
 - JavaDocs
 - Unit tests
-- refactoring 0.12.x - introduce hysterix request context and hysterix context
 
 ## REAL FUTURE
 - use akka to publish metrics to a central server
