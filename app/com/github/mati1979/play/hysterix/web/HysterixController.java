@@ -35,9 +35,13 @@ public class HysterixController extends Controller {
             }
         };
 
-        System.out.println("acTiveSize:" + activeEventSources.size());
-
         return ok(eventSource);
+    }
+
+    public Result clearActiveEventSources() {
+        activeEventSources.clear();
+
+        return ok(String.valueOf(activeEventSources.size() == 0));
     }
 
     private class Subscriber {
