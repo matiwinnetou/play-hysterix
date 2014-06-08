@@ -1,7 +1,6 @@
 package com.github.mati1979.play.hysterix;
 
 import com.github.mati1979.play.hysterix.event.HysterixCommandEvent;
-import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,13 +23,12 @@ public class HysterixRequestLog {
 
     private LinkedBlockingQueue<scala.concurrent.Promise<Collection<HysterixCommand<?>>>> promises = new LinkedBlockingQueue<>();
 
-    private final HysterixSettings hysterixSettings;
+    private final HysterixContext hysterixContext;
 
-    public HysterixRequestLog(final HysterixSettings hysterixSettings,
-                              final EventBus eventBus) {
-        this.hysterixSettings = hysterixSettings;
-        eventBus.register(new Subscriber());
-        if (hysterixSettings.isLogRequestStatistics()) {
+    public HysterixRequestLog(final HysterixContext hysterixContext) {
+        this.hysterixContext = hysterixContext;
+        hysterixContext.getEventBus().register(new Subscriber());
+        if (hysterixContext.getHysterixSettings().isLogRequestStatistics()) {
             scheduleTimerTask();
         }
     }
@@ -43,7 +41,7 @@ public class HysterixRequestLog {
                 notifyPromises();
             }
 
-        }, hysterixSettings.getLogRequestStatisticsTimeoutMs());
+        }, hysterixContext.getHysterixSettings().getLogRequestStatisticsTimeoutMs());
     }
 
     private void addExecutedCommand(final HysterixCommand<?> command) {
@@ -67,7 +65,7 @@ public class HysterixRequestLog {
     }
 
     public F.Promise<Collection<HysterixCommand<?>>> executedCommands() {
-        if (!hysterixSettings.isLogRequestStatistics()) {
+        if (!hysterixContext.getHysterixSettings().isLogRequestStatistics()) {
             throw new RuntimeException("Cannot inspect log, you have to enable request log inspect via hystrix settings");
         }
         scala.concurrent.Promise<Collection<HysterixCommand<?>>> promise =

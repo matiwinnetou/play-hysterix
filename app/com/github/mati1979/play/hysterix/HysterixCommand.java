@@ -12,12 +12,12 @@ public abstract class HysterixCommand<T> {
 
     protected final String httpRequestId = UUID.randomUUID().toString();
 
-    protected final HysterixContext hysterixContext;
+    protected final HysterixRequestContext hysterixRequestContext;
 
     protected final HysterixResponseMetadata metadata = new HysterixResponseMetadata();
 
-    protected HysterixCommand(final HysterixContext context) {
-        this.hysterixContext = context;
+    protected HysterixCommand(final HysterixRequestContext hysterixRequestContext) {
+        this.hysterixRequestContext = hysterixRequestContext;
     }
 
     //transform response into domain object, client is responsible to call web service
@@ -71,7 +71,7 @@ public abstract class HysterixCommand<T> {
         final String requestCacheKey = getRequestCacheKey().get();
         logger.debug(String.format("Trying to use request cache, requestCacheKey:%s", requestCacheKey));
 
-        final HysterixRequestCacheHolder hysterixRequestCacheHolder = hysterixContext.getHysterixRequestCacheHolder();
+        final HysterixRequestCacheHolder hysterixRequestCacheHolder = hysterixRequestContext.getHysterixRequestCacheHolder();
         final HysterixHttpRequestsCache cache = hysterixRequestCacheHolder.getOrCreate(requestCacheKey);
 
         return cache.addRequest(httpRequestId, this).execute(httpRequestId).map(cacheResp -> {
@@ -107,12 +107,12 @@ public abstract class HysterixCommand<T> {
         }
 
         logger.debug("Execution complete, url:" + getRemoteUrl().orElse("?"));
-        HysterixEventBus.EVENT_BUS.post(new HysterixCommandEvent(this));
+        hysterixRequestContext.getHysterixContext().getEventBus().post(new HysterixCommandEvent(this));
     }
 
     private F.Promise<HysterixResponse<T>> onRecover(final Throwable t) throws Throwable {
         logger.warn("Remote call failed, url:" + getRemoteUrl().orElse("?"), t);
-        final HysterixSettings hysterixSettings = hysterixContext.getHysterixSettings();
+        final HysterixSettings hysterixSettings = hysterixRequestContext.getHysterixContext().getHysterixSettings();
         //metadata.markFailure();
         if (t instanceof java.util.concurrent.TimeoutException) {
             logger.warn("Timeout from service, url:" + getRemoteUrl().orElse("?"));
@@ -157,7 +157,7 @@ public abstract class HysterixCommand<T> {
     }
 
     private boolean isRequestCachingEnabled() {
-        final HysterixSettings hysterixSettings = hysterixContext.getHysterixSettings();
+        final HysterixSettings hysterixSettings = hysterixRequestContext.getHysterixContext().getHysterixSettings();
 
         return hysterixSettings.isRequestCacheEnabled() && getCacheKey().isPresent();
     }

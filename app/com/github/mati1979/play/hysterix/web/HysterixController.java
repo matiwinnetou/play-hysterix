@@ -1,9 +1,9 @@
 package com.github.mati1979.play.hysterix.web;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.mati1979.play.hysterix.HysterixContext;
 import com.github.mati1979.play.hysterix.event.HysterixStatisticsEvent;
 import com.google.common.collect.Lists;
-import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import play.libs.EventSource;
 import play.libs.Json;
@@ -17,11 +17,13 @@ import java.util.List;
  */
 public class HysterixController extends Controller {
 
+    private final HysterixContext hysterixContext;
     private List<EventSource> activeEventSources;
 
-    public HysterixController(final EventBus eventBus) {
+    public HysterixController(final HysterixContext hysterixContext) {
+        this.hysterixContext = hysterixContext;
         activeEventSources = Lists.newArrayList();
-        eventBus.register(new Subscriber());
+        hysterixContext.getEventBus().register(new Subscriber());
     }
 
     public Result index() {
@@ -96,8 +98,8 @@ public class HysterixController extends Controller {
             data.put("propertyValue_executionIsolationSemaphoreMaxConcurrentRequests", 20);
             data.put("propertyValue_fallbackIsolationSemaphoreMaxConcurrentRequests", 20);
             data.put("propertyValue_metricsRollingStatisticalWindowInMilliseconds", 10000);
-            data.put("propertyValue_requestCacheEnabled", true);
-            data.put("propertyValue_requestLogEnabled", true);
+            data.put("propertyValue_requestCacheEnabled", hysterixContext.getHysterixSettings().isRequestCacheEnabled());
+            data.put("propertyValue_requestLogEnabled", hysterixContext.getHysterixSettings().isLogRequestStatistics());
             data.put("reportingHosts", 1);
             activeEventSources.stream().forEach(eventSource -> eventSource.send(EventSource.Event.event(data)));
         }

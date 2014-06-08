@@ -1,6 +1,7 @@
 package com.github.mati1979.play.hysterix.stats;
 
 import com.github.mati1979.play.hysterix.HysterixCommand;
+import com.github.mati1979.play.hysterix.HysterixContext;
 import com.github.mati1979.play.hysterix.HysterixSettings;
 import com.github.mati1979.play.hysterix.event.HysterixCommandEvent;
 import com.github.mati1979.play.hysterix.event.HysterixStatisticsEvent;
@@ -20,12 +21,11 @@ public class HysterixGlobalStatisticsHolder {
     private final Map<String, HysterixGlobalStatistics> cache = Maps.newConcurrentMap();
 
     private final HysterixSettings hysterixSettings;
-
     private final EventBus eventBus;
 
-    public HysterixGlobalStatisticsHolder(final EventBus eventBus, final HysterixSettings hysterixSettings) {
-        this.eventBus = eventBus;
+    public HysterixGlobalStatisticsHolder(final HysterixSettings hysterixSettings, final EventBus eventBus) {
         this.hysterixSettings = hysterixSettings;
+        this.eventBus = eventBus;
         eventBus.register(new Subscriber());
     }
 
