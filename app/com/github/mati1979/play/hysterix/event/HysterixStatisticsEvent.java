@@ -10,7 +10,8 @@ public class HysterixStatisticsEvent {
     private final HysterixCommandEvent event;
     private final HysterixGlobalStatistics stats;
 
-    public HysterixStatisticsEvent(final HysterixCommandEvent event, final HysterixGlobalStatistics stats) {
+    public HysterixStatisticsEvent(final HysterixCommandEvent event,
+                                   final HysterixGlobalStatistics stats) {
         this.event = event;
         this.stats = stats;
     }

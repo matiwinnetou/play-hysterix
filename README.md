@@ -13,6 +13,10 @@ using thread locals neither necessary nor recommended. In addition it was for au
 basically that without invoking shutdown method after initialize memory leaks could occur. Instead hysterix is a bit more verbose, one
 has to create manually or via AOP or filter HysterixContext, which will be passed to library and eventually garbage collected. 
 
+In addition, contrary to Hystrix, this library does not use request collapers from hystrix (neither batch size nor time). This concept we believe
+is ultimately broken and anything based on time or sime may leak through cache. Hysterix uses lazy scala promises and only invokes promise onCompleted
+or onFailure in case real response has been returned from the server.
+
 However, this library does not want to reinvent the wheel and initial plan is to be compatible with hystrix-dashboard json api, so that results can be displayed using Netlix UI tools. 
 
 ## Support
@@ -22,11 +26,11 @@ Scala 2.11.x binary on request.
 - Java 8 is required at the moment
 
 ## Status 
-status: in development, use at own risk, a few early libraries pushed to maven central at:
+status: in development, use at own risk (interface may change and may be buggy), a few initial versions pushed to maven central at:
 
 http://repo1.maven.org/maven2/pl/matisoft/play-hysterix_2.10/
 
-Sbt: "pl.matisoft" %% "play-hysterix" % "0.1.11"
+Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.0"
 
 ## Features:
 - graceful handling support for commands
