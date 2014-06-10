@@ -13,8 +13,8 @@ using thread locals neither necessary nor recommended. In addition it was for au
 basically that without invoking shutdown method after initialize memory leaks could occur. Instead hysterix is a bit more verbose, one
 has to create manually or via AOP or filter HysterixContext, which will be passed to library and eventually garbage collected. 
 
-In addition, contrary to Hystrix, this library does not use request collapers from hystrix (neither batch size nor time). This concept we believe
-is ultimately broken and anything based on time or sime may leak through cache. Hysterix uses lazy scala promises and only invokes promise onCompleted
+In addition, contrary to Hystrix, this library does not use request collapers from hystrix (neither batch size nor time collapsing). This concept we believe
+is ultimately broken and anything based on time or size may leak through cache. Hysterix uses lazy scala promises and only invokes promise onCompleted
 or onFailure in case real response has been returned from the server.
 
 However, this library does not want to reinvent the wheel and initial plan is to be compatible with hystrix-dashboard json api, so that results can be displayed using Netlix UI tools. 
@@ -33,11 +33,11 @@ http://repo1.maven.org/maven2/pl/matisoft/play-hysterix_2.10/
 Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.0"
 
 ## Features:
-- graceful handling support for commands
-- request based cache
+- graceful handling support for commands, also as a Promise (i.e. remote service call or plain value)
+- request based cache (without any request collapsers but using pure lazy promises)
 - async access to request cache for logging request metrics
-- initial rudimentary support for global metrics for all commands (HysterixGlobalStatistics)
-- safe - no memory leaks by design, hysterix context should be garbage collected after each request automatically
+- initial rudimentary support for global metrics for all commands (HysterixGlobalStatistics) and streaming some data to hysterix-dashboard
+- safe - no memory leaks by design, hysterix request context should be garbage collected after each http request
 
 ## Authors:
 - Mateusz Szczap
