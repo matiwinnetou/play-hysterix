@@ -62,6 +62,7 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - 0.1.11 - bug fix for average execution time calculation
 - 0.1.12 - bug fix in case request caching was disabled, markSuccess was never invoked.
 - 0.2.0 - initial support for streaming hysterix stream to hystrix dashboard UI
+- 0.2.? - improved generics handling, HysterixRequestsCache is now generics enabled
 
 ## TODO
 - INSPECT THREAD SAFETY of the library

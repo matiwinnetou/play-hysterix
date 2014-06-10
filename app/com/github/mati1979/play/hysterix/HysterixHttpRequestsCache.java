@@ -14,25 +14,25 @@ import java.util.Optional;
  * Created by mati on 24/05/2014.
  */
 @NotThreadSafe
-public class HysterixHttpRequestsCache {
+public class HysterixHttpRequestsCache<T> {
 
     private static final play.Logger.ALogger logger = play.Logger.of(HysterixHttpRequestsCache.class);
 
     private final String requestCacheKey;
 
-    private Optional<HysterixCommand> realCommand = Optional.empty();
+    private Optional<HysterixCommand<T>> realCommand = Optional.empty();
 
-    private Optional<RealResponse> realResponse = Optional.empty();
+    private Optional<RealResponse<T>> realResponse = Optional.empty();
 
-    private Map<String, LazyPromise> lazyProxyPromises = Maps.newConcurrentMap();
+    private Map<String, LazyPromise<T>> lazyProxyPromises = Maps.newConcurrentMap();
 
-    private List<HysterixCommand> hystrixCommands = Collections.synchronizedList(Lists.newArrayList());
+    private List<HysterixCommand<T>> hystrixCommands = Collections.synchronizedList(Lists.newArrayList());
 
     public HysterixHttpRequestsCache(final String requestCacheKey) {
         this.requestCacheKey = requestCacheKey;
     }
 
-    public synchronized HysterixHttpRequestsCache addRequest(final String requestId, final HysterixCommand command) {
+    public synchronized HysterixHttpRequestsCache<T> addRequest(final String requestId, final HysterixCommand<T> command) {
         if (shouldNotCache(command)) {
             return this;
         }
@@ -43,9 +43,9 @@ public class HysterixHttpRequestsCache {
         return this;
     }
 
-    public synchronized F.Promise<CacheResp> execute(final String requestId) {
+    public synchronized F.Promise<CacheResp<T>> execute(final String requestId) {
         if (realResponse.isPresent() && realResponse.get().isCompleted()) {
-            final RealResponse response = realResponse.get();
+            final RealResponse<T> response = realResponse.get();
             logger.debug("Call has been already completed, requestCacheKey:" + requestCacheKey);
             if (response.successValue.isPresent()) {
                 logger.debug("Completed with success, requestCacheKey:" + requestCacheKey);
@@ -68,7 +68,7 @@ public class HysterixHttpRequestsCache {
         return realGet(requestId);
     }
 
-    private void redeemSuccess(final Object data) {
+    private void redeemSuccess(final T data) {
         final RealResponse response = new RealResponse();
         response.successValue = Optional.of(data);
         this.realResponse = Optional.of(response);
@@ -85,15 +85,15 @@ public class HysterixHttpRequestsCache {
         });
     }
 
-    private boolean shouldNotCache(final HysterixCommand command) {
+    private boolean shouldNotCache(final HysterixCommand<T> command) {
         return !command.getCacheKey().isPresent();
     }
 
-    public F.Promise<CacheResp> getLazyPromise(final String requestId) {
-        return F.Promise.<CacheResp>wrap(asScalaPromise(requestId).future());
+    public F.Promise<CacheResp<T>> getLazyPromise(final String requestId) {
+        return F.Promise.wrap(asScalaPromise(requestId).future());
     }
 
-    private scala.concurrent.Promise asScalaPromise(final String requestId) {
+    private scala.concurrent.Promise<CacheResp<T>> asScalaPromise(final String requestId) {
         return lazyProxyPromises.get(requestId).scalaPromise;
     }
 
@@ -108,14 +108,14 @@ public class HysterixHttpRequestsCache {
         });
     }
 
-    private F.Promise realGet(final String requestId) {
+    private F.Promise<CacheResp<T>> realGet(final String requestId) {
         logger.debug(String.format("real get for requestId:%s, groupId:%s", requestId, requestCacheKey));
         if (hystrixCommands.isEmpty()) {
             return F.Promise.throwing(new RuntimeException("You must first enqueue a holder via addRequest method!"));
         }
 
-        final HysterixCommand command = hystrixCommands.iterator().next();
-        final F.Promise realResponseP = command.callRemote();
+        final HysterixCommand<T> command = hystrixCommands.iterator().next();
+        final F.Promise<T> realResponseP = command.callRemote();
         this.realCommand = Optional.of(command);
 
         realResponseP.onRedeem(response -> redeemSuccess(response));
@@ -124,13 +124,13 @@ public class HysterixHttpRequestsCache {
         return getLazyPromise(requestId);
     }
 
-    private LazyPromise createLazyPromise(final HysterixCommand hysterixCommand) {
+    private LazyPromise<T> createLazyPromise(final HysterixCommand<T> hysterixCommand) {
         return new LazyPromise(scala.concurrent.Promise$.MODULE$.apply(), hysterixCommand);
     }
 
-    private static class RealResponse {
+    private static class RealResponse<T> {
 
-        private Optional<Object> successValue = Optional.empty();
+        private Optional<T> successValue = Optional.empty();
         private Optional<Throwable> failureValue = Optional.empty();
 
         public boolean isCompleted() {
@@ -139,22 +139,22 @@ public class HysterixHttpRequestsCache {
 
     }
 
-    private static class LazyPromise {
+    private static class LazyPromise<T> {
 
-        private scala.concurrent.Promise scalaPromise;
-        private HysterixCommand hysterixCommand;
+        private scala.concurrent.Promise<CacheResp<T>> scalaPromise;
+        private HysterixCommand<T> hysterixCommand;
         private boolean callbackExecuted = false;
 
-        private LazyPromise(scala.concurrent.Promise scalaPromise, final HysterixCommand hysterixCommand) {
+        private LazyPromise(scala.concurrent.Promise<CacheResp<T>> scalaPromise, final HysterixCommand<T> hysterixCommand) {
             this.scalaPromise = scalaPromise;
             this.hysterixCommand = hysterixCommand;
         }
 
     }
 
-    public static class CacheResp {
+    public static class CacheResp<T> {
 
-        private Object data;
+        private T data;
         private boolean cacheHit = false;
 
         public CacheResp(final boolean cacheHit) {
@@ -165,7 +165,7 @@ public class HysterixHttpRequestsCache {
             return cacheHit;
         }
 
-        public Object getData() {
+        public T getData() {
             return data;
         }
 

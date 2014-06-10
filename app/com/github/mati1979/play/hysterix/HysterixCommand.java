@@ -72,14 +72,14 @@ public abstract class HysterixCommand<T> {
         logger.debug(String.format("Trying to use request cache, requestCacheKey:%s", requestCacheKey));
 
         final HysterixRequestCacheHolder hysterixRequestCacheHolder = hysterixRequestContext.getHysterixRequestCacheHolder();
-        final HysterixHttpRequestsCache cache = hysterixRequestCacheHolder.getOrCreate(requestCacheKey);
+        final HysterixHttpRequestsCache<T> cache = hysterixRequestCacheHolder.getOrCreate(requestCacheKey);
 
         return cache.addRequest(httpRequestId, this).execute(httpRequestId).map(cacheResp -> {
             if (cacheResp.isCacheHit()) {
                 getMetadata().markResponseFromCache();
             }
 
-            return (T) cacheResp.getData();
+            return cacheResp.getData();
         });
     }
 

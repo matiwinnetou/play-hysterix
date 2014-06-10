@@ -10,8 +10,8 @@ public class HysterixRequestCacheHolder {
 
     private Map<String, HysterixHttpRequestsCache> caches = Maps.newConcurrentMap();
 
-    public synchronized HysterixHttpRequestsCache getOrCreate(final String requestCacheKey) {
-        final HysterixHttpRequestsCache requestCache = caches.getOrDefault(requestCacheKey, new HysterixHttpRequestsCache(requestCacheKey));
+    public synchronized <T> HysterixHttpRequestsCache<T> getOrCreate(final String requestCacheKey) {
+        final HysterixHttpRequestsCache<T> requestCache = caches.getOrDefault(requestCacheKey, new HysterixHttpRequestsCache<T>(requestCacheKey));
         caches.put(requestCacheKey, requestCache);
 
         return requestCache;
