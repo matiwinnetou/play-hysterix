@@ -10,6 +10,7 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -22,7 +23,7 @@ public class HysterixController extends Controller {
 
     public HysterixController(final HysterixContext hysterixContext) {
         this.hysterixContext = hysterixContext;
-        activeEventSources = Lists.newArrayList();
+        activeEventSources = Collections.synchronizedList(Lists.newArrayList());
         hysterixContext.getEventBus().register(new Subscriber());
     }
 
