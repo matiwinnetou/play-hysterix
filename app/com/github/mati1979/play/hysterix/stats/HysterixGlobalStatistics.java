@@ -31,21 +31,21 @@ public class HysterixGlobalStatistics {
         this.hysterixSettings = hysterixSettings;
         this.metricRegistry = metricRegistry;
         this.key = key;
-        averageExecutionTime = createHistogram(key + ".averageExecutionTime");
-        rollingCountFailure = createHistogram(key + ".rollingCountFailure");
-        rollingCountResponsesFromCache = createHistogram(key + ".rollingCountResponsesFromCache");
-        rollingCountFallbackSuccess = createHistogram(key + ".rollingCountFallbackSuccess");
-        rollingCountFallbackFailure = createHistogram(key + ".rollingCountFallbackFailure");
-        rollingCountExceptionsThrown = createHistogram(key + ".rollingCountExceptionsThrown");
-        rollingCountSuccess = createHistogram(key + ".rollingCountSuccess");
-        rollingCountTimeout = createHistogram(key + ".rollingCountTimeout");
+        averageExecutionTime = createHistogram();
+        rollingCountFailure = createHistogram();
+        rollingCountResponsesFromCache = createHistogram();
+        rollingCountFallbackSuccess = createHistogram();
+        rollingCountFallbackFailure = createHistogram();
+        rollingCountExceptionsThrown = createHistogram();
+        rollingCountSuccess = createHistogram();
+        rollingCountTimeout = createHistogram();
     }
 
     public String getKey() {
         return key;
     }
 
-    synchronized void notify(final HysterixResponseMetadata metadata) {
+    void notify(final HysterixResponseMetadata metadata) {
         if (metadata.isSuccessfulExecution()) {
             rollingCountSuccess.update(1);
         }
@@ -128,19 +128,16 @@ public class HysterixGlobalStatistics {
         return Math.round(averageExecutionTime.getSnapshot().getValue(quantile));
     }
 
-    private Histogram createHistogram(final String name) {
+    private Histogram createHistogram() {
         final long rollingTimeWindowIntervalInMs = hysterixSettings.getRollingTimeWindowIntervalInMs();
-        final Histogram histogram = new Histogram(new SlidingTimeWindowReservoir(rollingTimeWindowIntervalInMs, TimeUnit.MILLISECONDS));
-        //metricRegistry.register(name, histogram);
 
-        return histogram;
+        return new Histogram(new SlidingTimeWindowReservoir(rollingTimeWindowIntervalInMs, TimeUnit.MILLISECONDS));
     }
 
     @Override
     public String toString() {
         return "HysterixGlobalStatistics{" +
                 "hysterixSettings=" + hysterixSettings +
-                ", metricRegistry=" + metricRegistry +
                 ", key='" + key + '\'' +
                 ", rollingCountFailure=" + rollingCountFailure +
                 ", rollingCountResponsesFromCache=" + rollingCountResponsesFromCache +
