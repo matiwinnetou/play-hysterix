@@ -30,7 +30,7 @@ status: in development, use at own risk (interface may change and may be buggy),
 
 http://repo1.maven.org/maven2/pl/matisoft/play-hysterix_2.10/
 
-Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.0"
+Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.1"
 
 ## Features:
 - graceful handling support for commands, also as a Promise (i.e. remote service call or plain value)
@@ -62,11 +62,10 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - 0.1.11 - bug fix for average execution time calculation
 - 0.1.12 - bug fix in case request caching was disabled, markSuccess was never invoked.
 - 0.2.0 - initial support for streaming hysterix stream to hystrix dashboard UI
-- 0.2.? - improved generics handling, HysterixRequestsCache is now generics enabled
+- 0.2.1 - improved generics handling, HysterixRequestsCache is now generics enabled + percentiles and bug fixes
 
 ## TODO
 - INSPECT THREAD SAFETY of the library
-- extend metrics to contain all that hystrix dashboard expects, e.g. percentiles, median, etc
 - circuit breaker support
 - JavaDocs
 - Unit tests
