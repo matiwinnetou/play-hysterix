@@ -1,8 +1,11 @@
+import sbt.Keys._
+import scala.Some
+
 organization := "pl.matisoft"
 
 name := "play-hysterix"
 
-version := "0.2.0"
+version := "0.2.1-SNAPSHOT"
 
 scalaVersion := "2.10.4"
 
@@ -18,6 +21,8 @@ val commonSettings = Seq(
 )
 
 lazy val main = (project in file(".")).settings(commonSettings:_*).enablePlugins(PlayJava)
+
+libraryDependencies += "com.yammer.metrics" % "metrics-core" % "3.0.0-BETA1"
 
 libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % Test
 

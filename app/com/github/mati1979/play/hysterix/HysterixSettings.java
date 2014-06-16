@@ -6,12 +6,18 @@ public class HysterixSettings {
     private boolean requestCacheEnabled = true;
 
     private boolean logRequestStatistics = false;
-    private int logRequestStatisticsTimeoutMs = 5000; //t seconds
+    private int logRequestStatisticsTimeoutMs = 5000; //5 seconds
 
     private boolean logGlobalStatistics = true;
 
+    private long rollingTimeWindowIntervalInMs = 10000; // 10 seconds by default
+
     public boolean isLogGlobalStatistics() {
         return logGlobalStatistics;
+    }
+
+    public long getRollingTimeWindowIntervalInMs() {
+        return rollingTimeWindowIntervalInMs;
     }
 
     public boolean isFallbackEnabled() {
@@ -60,6 +66,11 @@ public class HysterixSettings {
 
         public Builder withLogRequestStatisticsTimeoutMs(final int logRequestStatisticsTimeoutMs) {
             hysterixSettings.logRequestStatisticsTimeoutMs = logRequestStatisticsTimeoutMs;
+            return this;
+        }
+
+        public Builder withRollingTimeWindowIntervalInMs(final int rollingTimeWindowIntervalInMs) {
+            hysterixSettings.rollingTimeWindowIntervalInMs = rollingTimeWindowIntervalInMs;
             return this;
         }
 

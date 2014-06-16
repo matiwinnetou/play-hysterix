@@ -1,13 +1,13 @@
 package com.github.mati1979.play.hysterix.stats;
 
 import com.github.mati1979.play.hysterix.HysterixCommand;
-import com.github.mati1979.play.hysterix.HysterixContext;
 import com.github.mati1979.play.hysterix.HysterixSettings;
 import com.github.mati1979.play.hysterix.event.HysterixCommandEvent;
 import com.github.mati1979.play.hysterix.event.HysterixStatisticsEvent;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.yammer.metrics.MetricRegistry;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -21,11 +21,15 @@ public class HysterixGlobalStatisticsHolder {
     private final Map<String, HysterixGlobalStatistics> cache = Maps.newConcurrentMap();
 
     private final HysterixSettings hysterixSettings;
+    private final MetricRegistry metricRegistry;
     private final EventBus eventBus;
 
-    public HysterixGlobalStatisticsHolder(final HysterixSettings hysterixSettings, final EventBus eventBus) {
+    public HysterixGlobalStatisticsHolder(final HysterixSettings hysterixSettings,
+                                          final MetricRegistry metricRegistry,
+                                          final EventBus eventBus) {
         this.hysterixSettings = hysterixSettings;
         this.eventBus = eventBus;
+        this.metricRegistry = metricRegistry;
         eventBus.register(new Subscriber());
     }
 
@@ -37,7 +41,7 @@ public class HysterixGlobalStatisticsHolder {
 
     public synchronized HysterixGlobalStatistics getHysterixCacheMetrics(final String commandGroupKey, final String commandKey) {
         final String key = String.format("%s.%s", commandGroupKey, commandKey);
-        final HysterixGlobalStatistics hysterixGlobalStatistics = cache.getOrDefault(key, new HysterixGlobalStatistics(key));
+        final HysterixGlobalStatistics hysterixGlobalStatistics = cache.getOrDefault(key, new HysterixGlobalStatistics(hysterixSettings, metricRegistry, key));
 
         cache.put(key, hysterixGlobalStatistics);
 
