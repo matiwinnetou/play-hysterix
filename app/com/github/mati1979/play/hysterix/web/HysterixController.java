@@ -70,22 +70,22 @@ public class HysterixController extends Controller {
             data.put("group", (String) event.getEvent().getHysterixCommand().getCommandGroupKey().orElse(""));
             data.put("currentTime", event.getEvent().getCurrentTime());
             data.put("errorPercentage", event.getStats().getErrorPercentage());
-            data.put("isCircuitBreakerOpen", false);
+            data.put("isCircuitBreakerOpen", event.getEvent().getHysterixCommand().getHysterixCircuitBreaker().isOpen());
             data.put("errorCount", event.getStats().getErrorCount());
             data.put("requestCount", event.getStats().getTotalCount());
             data.put("rollingCountCollapsedRequests", event.getStats().getRollingCountResponsesFromCache());
             data.put("rollingCountExceptionsThrown", event.getStats().getRollingCountExceptionsThrown());
             data.put("rollingCountFailure", event.getStats().getRollingCountFailure());
-            data.put("rollingCountFallbackFailure", event.getStats().getRollingCountFailure());
-            data.put("rollingCountFallbackRejection", 0);
+            data.put("rollingCountFallbackFailure", event.getStats().getRollingCountFallbackFailure());
+            data.put("rollingCountFallbackRejection", 0); //TODO
             data.put("rollingCountFallbackSuccess", event.getStats().getRollingCountFallbackSuccess());
             data.put("rollingCountResponsesFromCache", event.getStats().getRollingCountResponsesFromCache());
-            data.put("rollingCountSemaphoreRejected", 0);
-            data.put("rollingCountShortCircuited", 0);
+            data.put("rollingCountSemaphoreRejected", 0); //TODO only when semaphore implemented
+            data.put("rollingCountShortCircuited", event.getStats().getRollingCountShortCircuited());
             data.put("rollingCountSuccess", event.getStats().getRollingSuccessWithoutRequestCache());
             data.put("rollingCountThreadPoolRejected", 0);
             data.put("rollingCountTimeout", event.getStats().getRollingTimeoutCount());
-            data.put("currentConcurrentExecutionCount", 0);
+            data.put("currentConcurrentExecutionCount", 0); //TODO
             data.put("latencyExecute_mean", event.getStats().getAverageExecutionTime());
 
             final ObjectNode percentiles = Json.newObject();
@@ -104,12 +104,12 @@ public class HysterixController extends Controller {
             data.put("latencyTotal_mean", event.getStats().getAverageExecutionTime());
             data.put("latencyTotal", percentiles);
 
-            data.put("propertyValue_circuitBreakerRequestVolumeThreshold", 0);
-            data.put("propertyValue_circuitBreakerSleepWindowInMilliseconds", 0);
-            data.put("propertyValue_circuitBreakerErrorThresholdPercentage", 0);
+            data.put("propertyValue_circuitBreakerRequestVolumeThreshold", hysterixContext.getHysterixSettings().getCircuitBreakerRequestVolumeThreshold());
+            data.put("propertyValue_circuitBreakerSleepWindowInMilliseconds", hysterixContext.getHysterixSettings().getCircuitBreakerSleepWindowInMilliseconds());
+            data.put("propertyValue_circuitBreakerErrorThresholdPercentage", hysterixContext.getHysterixSettings().getCircuitBreakerErrorThresholdPercentage());
             data.put("propertyValue_circuitBreakerForceOpen", false);
-            data.put("propertyValue_circuitBreakerForceClosed", false);
-            data.put("propertyValue_circuitBreakerEnabled", false);
+            data.put("propertyValue_circuitBreakerForceClosed", hysterixContext.getHysterixSettings().isCircuitBreakerForceClosed());
+            data.put("propertyValue_circuitBreakerEnabled", hysterixContext.getHysterixSettings().isCircuitBreakerEnabled());
             data.put("propertyValue_executionIsolationStrategy", "THREAD");
             data.put("propertyValue_executionIsolationThreadTimeoutInMilliseconds", "2000");
             data.put("propertyValue_executionIsolationThreadInterruptOnTimeout", true);

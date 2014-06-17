@@ -21,15 +21,12 @@ public class HysterixGlobalStatisticsHolder {
     private final Map<String, HysterixGlobalStatistics> cache = Maps.newConcurrentMap();
 
     private final HysterixSettings hysterixSettings;
-    private final MetricRegistry metricRegistry;
     private final EventBus eventBus;
 
     public HysterixGlobalStatisticsHolder(final HysterixSettings hysterixSettings,
-                                          final MetricRegistry metricRegistry,
                                           final EventBus eventBus) {
         this.hysterixSettings = hysterixSettings;
         this.eventBus = eventBus;
-        this.metricRegistry = metricRegistry;
         eventBus.register(new Subscriber());
     }
 
@@ -41,7 +38,7 @@ public class HysterixGlobalStatisticsHolder {
 
     public synchronized HysterixGlobalStatistics getHysterixCacheMetrics(final String commandGroupKey, final String commandKey) {
         final String key = String.format("%s.%s", commandGroupKey, commandKey);
-        final HysterixGlobalStatistics hysterixGlobalStatistics = cache.getOrDefault(key, new HysterixGlobalStatistics(hysterixSettings, metricRegistry, key));
+        final HysterixGlobalStatistics hysterixGlobalStatistics = cache.getOrDefault(key, new HysterixGlobalStatistics(hysterixSettings, key));
 
         cache.put(key, hysterixGlobalStatistics);
 

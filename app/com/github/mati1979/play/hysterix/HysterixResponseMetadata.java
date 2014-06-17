@@ -50,12 +50,20 @@ public class HysterixResponseMetadata {
         executionEvents.add(HysterixEventType.RESPONSE_FROM_CACHE);
     }
 
+    protected void markShortCircuited() {
+        executionEvents.add(HysterixEventType.SHORT_CIRCUITED);
+    }
+
     protected void markExceptionThrown() {
         executionEvents.add(HysterixEventType.EXCEPTION_THROWN);
     }
 
     public boolean isExceptionThrown() {
         return executionEvents.contains(HysterixEventType.EXCEPTION_THROWN);
+    }
+
+    public boolean isShortCircuited() {
+        return executionEvents.contains(HysterixEventType.SHORT_CIRCUITED);
     }
 
     public boolean isExecutionComplete() {
@@ -73,7 +81,8 @@ public class HysterixResponseMetadata {
     public boolean isError() {
         return executionEvents.contains(HysterixEventType.FAILURE)
                 || executionEvents.contains(HysterixEventType.EXCEPTION_THROWN)
-                || executionEvents.contains(HysterixEventType.TIMEOUT);
+                || executionEvents.contains(HysterixEventType.TIMEOUT)
+                || executionEvents.contains(HysterixEventType.SHORT_CIRCUITED);
     }
 
     public boolean isFallbackSuccess() {

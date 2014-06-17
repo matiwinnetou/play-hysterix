@@ -3,7 +3,6 @@ package com.github.mati1979.play.hysterix.stats;
 import com.github.mati1979.play.hysterix.HysterixResponseMetadata;
 import com.github.mati1979.play.hysterix.HysterixSettings;
 import com.yammer.metrics.Histogram;
-import com.yammer.metrics.MetricRegistry;
 import com.yammer.metrics.SlidingTimeWindowReservoir;
 
 import java.util.concurrent.TimeUnit;
@@ -14,28 +13,28 @@ import java.util.concurrent.TimeUnit;
 public class HysterixGlobalStatistics {
 
     private final HysterixSettings hysterixSettings;
-    private final MetricRegistry metricRegistry;
     private final String key;
 
     private final Histogram rollingCountFailure;
     private final Histogram rollingCountResponsesFromCache;
     private final Histogram rollingCountFallbackSuccess;
     private final Histogram rollingCountFallbackFailure;
+    private final Histogram rollingCountShortCircuited;
     private final Histogram rollingCountExceptionsThrown;
     private final Histogram rollingCountSuccess;
     private final Histogram rollingCountTimeout;
 
     private Histogram averageExecutionTime;
 
-    public HysterixGlobalStatistics(final HysterixSettings hysterixSettings, final MetricRegistry metricRegistry, final String key) {
+    public HysterixGlobalStatistics(final HysterixSettings hysterixSettings, final String key) {
         this.hysterixSettings = hysterixSettings;
-        this.metricRegistry = metricRegistry;
         this.key = key;
         averageExecutionTime = createHistogram();
         rollingCountFailure = createHistogram();
         rollingCountResponsesFromCache = createHistogram();
         rollingCountFallbackSuccess = createHistogram();
         rollingCountFallbackFailure = createHistogram();
+        rollingCountShortCircuited = createHistogram();
         rollingCountExceptionsThrown = createHistogram();
         rollingCountSuccess = createHistogram();
         rollingCountTimeout = createHistogram();
@@ -67,19 +66,26 @@ public class HysterixGlobalStatistics {
         if (metadata.isResponseFromCache()) {
             rollingCountResponsesFromCache.update(1);
         }
+        if (metadata.isShortCircuited()) {
+            rollingCountShortCircuited.update(1);
+        }
         averageExecutionTime.update(metadata.getExecutionTime(TimeUnit.MILLISECONDS));
     }
 
     public long getErrorCount() {
-        return getRollingCountFailure() + getRollingTimeoutCount() + getRollingCountExceptionsThrown();
+        return getRollingCountFailure() + getRollingTimeoutCount() + getRollingCountExceptionsThrown() + getRollingCountShortCircuited();
     }
 
     public long getTotalCount() {
-        return getRollingSuccessWithoutRequestCache() + getRollingCountFailure() + getRollingTimeoutCount() + getRollingCountExceptionsThrown();
+        return getRollingSuccessWithoutRequestCache() + getRollingCountFailure() + getRollingTimeoutCount() + getRollingCountExceptionsThrown() + getRollingCountShortCircuited();
     }
 
     public long getRollingSuccessWithoutRequestCache() {
         return getRollingCountSuccess() - getRollingCountResponsesFromCache();
+    }
+
+    public long getRollingCountShortCircuited() {
+        return rollingCountShortCircuited.getSnapshot().size();
     }
 
     public long getRollingCountSuccess() {

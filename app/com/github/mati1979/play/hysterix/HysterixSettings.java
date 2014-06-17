@@ -12,8 +12,30 @@ public class HysterixSettings {
 
     private long rollingTimeWindowIntervalInMs = 10000; // 10 seconds by default
 
+    private boolean circuitBreakerEnabled = true;
+    private boolean circuitBreakerForceClosed = false;
+    private int circuitBreakerSleepWindowInMilliseconds = 5000;
+    private int circuitBreakerErrorThresholdPercentage = 50;
+    private int circuitBreakerRequestVolumeThreshold = 20;
+
     public boolean isLogGlobalStatistics() {
         return logGlobalStatistics;
+    }
+
+    public boolean isCircuitBreakerEnabled() {
+        return circuitBreakerEnabled;
+    }
+
+    public int getCircuitBreakerSleepWindowInMilliseconds() {
+        return circuitBreakerSleepWindowInMilliseconds;
+    }
+
+    public int getCircuitBreakerErrorThresholdPercentage() {
+        return circuitBreakerErrorThresholdPercentage;
+    }
+
+    public int getCircuitBreakerRequestVolumeThreshold() {
+        return circuitBreakerRequestVolumeThreshold;
     }
 
     public long getRollingTimeWindowIntervalInMs() {
@@ -30,6 +52,10 @@ public class HysterixSettings {
 
     public boolean isLogRequestStatistics() {
         return logRequestStatistics;
+    }
+
+    public boolean isCircuitBreakerForceClosed() {
+        return circuitBreakerForceClosed;
     }
 
     public int getLogRequestStatisticsTimeoutMs() {

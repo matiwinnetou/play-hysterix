@@ -1,5 +1,6 @@
 package com.github.mati1979.play.hysterix;
 
+import com.github.mati1979.play.hysterix.circuit.HysterixCircuitBreaker;
 import com.github.mati1979.play.hysterix.event.HysterixCommandEvent;
 import play.libs.F;
 
@@ -16,16 +17,26 @@ public abstract class HysterixCommand<T> {
 
     protected final HysterixResponseMetadata metadata = new HysterixResponseMetadata();
 
+    protected HysterixCircuitBreaker hysterixCircuitBreaker = HysterixCircuitBreaker.NULL;
+
     protected HysterixCommand(final HysterixRequestContext hysterixRequestContext) {
         this.hysterixRequestContext = hysterixRequestContext;
+        if (hysterixRequestContext.getHysterixContext().getHysterixSettings().isCircuitBreakerEnabled()) {
+            this.hysterixCircuitBreaker = hysterixRequestContext.getHysterixContext().getHysterixCircuitBreakerHolder()
+                    .getCircuitBreaker(this);
+        }
     }
 
     //transform response into domain object, client is responsible to call web service
-    //this method is used only if needed, execute will tryCache out if the response can come from a cache
+    //this method is used only if needed, execute will tryCall out if the response can come from a cache
     protected abstract F.Promise<T> run();
 
     public String getCommandId() {
         return httpRequestId;
+    }
+
+    public HysterixCircuitBreaker getHysterixCircuitBreaker() {
+        return hysterixCircuitBreaker;
     }
 
     public Optional<String> getCallingClient() {
@@ -49,7 +60,7 @@ public abstract class HysterixCommand<T> {
     public F.Promise<HysterixResponse<T>> execute() {
         metadata.getStopwatch().start();
 
-        return tryCache().map(response -> onSuccess(response)).recoverWith(t -> onRecover(t));
+        return tryCall().map(response -> onSuccess(response)).recoverWith(t -> onRecover(t));
     }
 
     public HysterixResponseMetadata getMetadata() {
@@ -60,14 +71,25 @@ public abstract class HysterixCommand<T> {
         return Optional.empty();
     }
 
-    //checks cache or does invoke run method
-    private F.Promise<T> tryCache() {
+    private F.Promise<T> tryCall() {
+        if (!hysterixCircuitBreaker.allowRequest()) {
+            if (getFallbackTo().isPresent()) {
+                logger.warn("circuit breaker open - falling back");
+                metadata.markShortCircuited();
+                return getFallbackTo().get();
+            }
+        }
+
         if (isRequestCachingDisabled() || !getRequestCacheKey().isPresent()) {
             logger.debug("Caching disabled - commandKey:" + getCommandKey());
 
             return callRemote();
         }
 
+        return tryCache();
+    }
+
+    private F.Promise<T> tryCache() {
         final String requestCacheKey = getRequestCacheKey().get();
         logger.debug(String.format("Trying to use request cache, requestCacheKey:%s", requestCacheKey));
 
@@ -95,6 +117,7 @@ public abstract class HysterixCommand<T> {
     private HysterixResponse<T> onSuccess(final T response) {
         logger.debug("Successful response url:" + getRemoteUrl().orElse("?"));
         getMetadata().markSuccess();
+        hysterixCircuitBreaker.markSuccess();
 
         executionComplete();
 
