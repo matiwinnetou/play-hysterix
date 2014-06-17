@@ -3,15 +3,14 @@ package com.github.mati1979.play.hysterix.web;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.mati1979.play.hysterix.HysterixContext;
 import com.github.mati1979.play.hysterix.event.HysterixStatisticsEvent;
-import com.google.common.collect.Lists;
 import com.google.common.eventbus.Subscribe;
 import play.libs.EventSource;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -26,7 +25,7 @@ public class HysterixController extends Controller {
 
     public HysterixController(final HysterixContext hysterixContext) {
         this.hysterixContext = hysterixContext;
-        activeEventSources = Collections.synchronizedList(Lists.newArrayList());
+        activeEventSources = new CopyOnWriteArrayList();
         hysterixContext.getEventBus().register(new Subscriber());
     }
 
@@ -34,12 +33,20 @@ public class HysterixController extends Controller {
         final EventSource eventSource = new EventSource() {
             @Override
             public void onConnected() {
-                activeEventSources = activeEventSources.stream().filter(eventS -> eventS != null).collect(Collectors.toList());
+                final boolean hasNulls = activeEventSources.stream().filter(eventSource -> eventSource == null).findAny().isPresent();
+                if (hasNulls) {
+                    activeEventSources = new CopyOnWriteArrayList(activeEventSources.stream().filter(eventS -> eventS != null).collect(Collectors.toList()));
+                }
                 if (activeEventSources.size() > 1000) {
                     logger.warn("activeEventSources over 1000, possibly memory leak!");
                 }
                 activeEventSources.add(this);
-                onDisconnected(() -> activeEventSources.remove(this));
+                onDisconnected(() -> {
+                    activeEventSources.remove(this);
+                    logger.debug("client disconnected, activeEventSources.size:" + activeEventSources.size());
+                });
+
+                logger.debug("client connected, activeEventSources.size:" + activeEventSources.size());
             }
         };
 
@@ -66,7 +73,7 @@ public class HysterixController extends Controller {
             data.put("isCircuitBreakerOpen", false);
             data.put("errorCount", event.getStats().getErrorCount());
             data.put("requestCount", event.getStats().getTotalCount());
-            data.put("rollingCountCollapsedRequests", 0); //TODO in my case response from cache is a collapsed one?
+            data.put("rollingCountCollapsedRequests", event.getStats().getRollingCountResponsesFromCache());
             data.put("rollingCountExceptionsThrown", event.getStats().getRollingCountExceptionsThrown());
             data.put("rollingCountFailure", event.getStats().getRollingCountFailure());
             data.put("rollingCountFallbackFailure", event.getStats().getRollingCountFailure());

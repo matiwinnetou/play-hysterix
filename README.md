@@ -67,6 +67,7 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 ## TODO
 - INSPECT THREAD SAFETY of the library
 - circuit breaker support
+- rewrite to scala and use Scala future, enable java api to work
 - JavaDocs
 - Unit tests
 
