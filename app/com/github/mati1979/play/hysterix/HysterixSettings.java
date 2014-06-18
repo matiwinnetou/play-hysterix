@@ -10,7 +10,7 @@ public class HysterixSettings {
 
     private boolean logGlobalStatistics = true;
 
-    private long rollingTimeWindowIntervalInMs = 10000; // 10 seconds by default
+    private long rollingTimeWindowIntervalInMs = 10000; // 10 seconds
 
     private boolean circuitBreakerEnabled = true;
     private boolean circuitBreakerForceClosed = false;

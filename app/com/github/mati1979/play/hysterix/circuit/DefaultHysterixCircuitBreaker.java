@@ -87,7 +87,7 @@ public class DefaultHysterixCircuitBreaker implements HysterixCircuitBreaker {
         }
 
         // check if we are past the statisticalWindowVolumeThreshold
-        if (hysterixGlobalStatistics.getTotalCount() < hysterixSettings.getCircuitBreakerErrorThresholdPercentage()) {
+        if (hysterixGlobalStatistics.getTotalCount() < hysterixSettings.getCircuitBreakerRequestVolumeThreshold()) {
             // we are not past the minimum volume threshold for the statisticalWindow so we'll return false immediately and not calculate anything
             return false;
         }
