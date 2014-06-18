@@ -16,6 +16,11 @@ public class HysterixRequestContext {
         this.hysterixRequestLog = hysterixRequestLog;
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        logger.debug("HysterixRequestContext...garbage collecting...");
+    }
+
     public HysterixRequestCacheHolder getHysterixRequestCacheHolder() {
         return hysterixRequestCacheHolder;
     }

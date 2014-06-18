@@ -17,14 +17,8 @@ public abstract class HysterixCommand<T> {
 
     protected final HysterixResponseMetadata metadata = new HysterixResponseMetadata();
 
-    protected HysterixCircuitBreaker hysterixCircuitBreaker = HysterixCircuitBreaker.NULL;
-
     protected HysterixCommand(final HysterixRequestContext hysterixRequestContext) {
         this.hysterixRequestContext = hysterixRequestContext;
-        if (hysterixRequestContext.getHysterixContext().getHysterixSettings().isCircuitBreakerEnabled()) {
-            this.hysterixCircuitBreaker = hysterixRequestContext.getHysterixContext().getHysterixCircuitBreakerHolder()
-                    .getCircuitBreaker(this);
-        }
     }
 
     //transform response into domain object, client is responsible to call web service
@@ -36,7 +30,11 @@ public abstract class HysterixCommand<T> {
     }
 
     public HysterixCircuitBreaker getHysterixCircuitBreaker() {
-        return hysterixCircuitBreaker;
+        if (hysterixRequestContext.getHysterixContext().getHysterixSettings().isCircuitBreakerEnabled()) {
+            return hysterixRequestContext.getHysterixContext().getHysterixCircuitBreakerHolder().getCircuitBreaker(this);
+        }
+
+        return HysterixCircuitBreaker.NULL;
     }
 
     public Optional<String> getCallingClient() {
@@ -72,14 +70,14 @@ public abstract class HysterixCommand<T> {
     }
 
     private F.Promise<T> tryCall() {
-        if (!hysterixCircuitBreaker.allowRequest()) {
-            throw new RuntimeException("circuit closed");
-//            if (getFallbackTo().isPresent()) {
-//                logger.warn("circuit breaker open - falling back");
-//                metadata.markShortCircuited();
-//                return getFallbackTo().get();
-//            }
+        logger.debug("tryCall");
+        if (!getHysterixCircuitBreaker().allowRequest()) {
+            logger.debug("request not allowed - short circuit:" + getCommandKey());
+            metadata.markShortCircuited();
+            return F.Promise.throwing(new RuntimeException("circuit breaker closed!"));
         }
+
+        logger.debug("request allowed..." + getCommandKey());
 
         if (isRequestCachingDisabled() || !getRequestCacheKey().isPresent()) {
             logger.debug("Caching disabled - commandKey:" + getCommandKey());
@@ -118,7 +116,7 @@ public abstract class HysterixCommand<T> {
     private HysterixResponse<T> onSuccess(final T response) {
         logger.debug("Successful response url:" + getRemoteUrl().orElse("?"));
         getMetadata().markSuccess();
-        hysterixCircuitBreaker.markSuccess();
+        getHysterixCircuitBreaker().markSuccess();
 
         executionComplete();
 
@@ -131,13 +129,13 @@ public abstract class HysterixCommand<T> {
         }
 
         logger.debug("Execution complete, url:" + getRemoteUrl().orElse("?"));
+        hysterixRequestContext.getHysterixRequestLog().addExecutedCommand(this);
         hysterixRequestContext.getHysterixContext().getEventBus().post(new HysterixCommandEvent(this));
     }
 
     private F.Promise<HysterixResponse<T>> onRecover(final Throwable t) throws Throwable {
         logger.warn("Remote call failed, url:" + getRemoteUrl().orElse("?"), t);
         final HysterixSettings hysterixSettings = hysterixRequestContext.getHysterixContext().getHysterixSettings();
-        //metadata.markFailure();
         if (t instanceof java.util.concurrent.TimeoutException) {
             logger.warn("Timeout from service, url:" + getRemoteUrl().orElse("?"));
             metadata.markTimeout();

@@ -7,7 +7,6 @@ import com.github.mati1979.play.hysterix.event.HysterixStatisticsEvent;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.yammer.metrics.MetricRegistry;
 
 import java.util.Collection;
 import java.util.Collections;

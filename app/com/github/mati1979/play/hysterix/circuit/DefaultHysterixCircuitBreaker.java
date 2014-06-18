@@ -23,10 +23,10 @@ public class DefaultHysterixCircuitBreaker implements HysterixCircuitBreaker {
     /* when the circuit was marked open or was last allowed to try a 'singleTest' */
     private AtomicLong circuitOpenedOrLastTestedTime = new AtomicLong();
 
-    protected DefaultHysterixCircuitBreaker(final String commandGroupKey,
-                                            final String commandKey,
-                                            final HysterixGlobalStatistics hysterixGlobalStatistics,
-                                            final HysterixSettings hystrixSettings) {
+    public DefaultHysterixCircuitBreaker(final String commandGroupKey,
+                                         final String commandKey,
+                                         final HysterixGlobalStatistics hysterixGlobalStatistics,
+                                         final HysterixSettings hystrixSettings) {
         this.commandGroupKey = commandGroupKey;
         this.commandKey = commandKey;
         this.hysterixGlobalStatistics = hysterixGlobalStatistics;
@@ -43,7 +43,10 @@ public class DefaultHysterixCircuitBreaker implements HysterixCircuitBreaker {
 
     @Override
     public void markSuccess() {
-        circuitOpen.compareAndSet(true, false);
+        if (circuitOpen.get()) {
+            hysterixGlobalStatistics.clearStats();
+            circuitOpen.set(false);
+        }
     }
 
     @Override

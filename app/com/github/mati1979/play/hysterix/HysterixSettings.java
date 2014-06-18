@@ -5,7 +5,7 @@ public class HysterixSettings {
     private boolean fallbackEnabled = true;
     private boolean requestCacheEnabled = true;
 
-    private boolean logRequestStatistics = false;
+    private boolean logRequestStatistics = true;
     private int logRequestStatisticsTimeoutMs = 5000; //5 seconds
 
     private boolean logGlobalStatistics = true;
@@ -14,7 +14,7 @@ public class HysterixSettings {
 
     private boolean circuitBreakerEnabled = true;
     private boolean circuitBreakerForceClosed = false;
-    private int circuitBreakerSleepWindowInMilliseconds = 5000;
+    private long circuitBreakerSleepWindowInMilliseconds = 5000;
     private int circuitBreakerErrorThresholdPercentage = 50;
     private int circuitBreakerRequestVolumeThreshold = 20;
 
@@ -26,7 +26,7 @@ public class HysterixSettings {
         return circuitBreakerEnabled;
     }
 
-    public int getCircuitBreakerSleepWindowInMilliseconds() {
+    public long getCircuitBreakerSleepWindowInMilliseconds() {
         return circuitBreakerSleepWindowInMilliseconds;
     }
 
@@ -97,6 +97,31 @@ public class HysterixSettings {
 
         public Builder withRollingTimeWindowIntervalInMs(final int rollingTimeWindowIntervalInMs) {
             hysterixSettings.rollingTimeWindowIntervalInMs = rollingTimeWindowIntervalInMs;
+            return this;
+        }
+
+        public Builder withCircuitBreakerEnabled(final boolean circuitBreakerEnabled) {
+            hysterixSettings.circuitBreakerEnabled = circuitBreakerEnabled;
+            return this;
+        }
+
+        public Builder withCircuitBreakerForceClosed(final boolean circuitBreakerForceClosed) {
+            hysterixSettings.circuitBreakerForceClosed = circuitBreakerForceClosed;
+            return this;
+        }
+
+        public Builder withCircuitBreakerSleepWindowInMilliseconds(final long circuitBreakerSleepWindowInMilliseconds) {
+            hysterixSettings.circuitBreakerSleepWindowInMilliseconds = circuitBreakerSleepWindowInMilliseconds;
+            return this;
+        }
+
+        public Builder withCircuitBreakerErrorThresholdPercentage(final int circuitBreakerErrorThresholdPercentage) {
+            hysterixSettings.circuitBreakerErrorThresholdPercentage = circuitBreakerErrorThresholdPercentage;
+            return this;
+        }
+
+        public Builder withCircuitBreakerRequestVolumeThreshold(final int circuitBreakerRequestVolumeThreshold) {
+            hysterixSettings.circuitBreakerRequestVolumeThreshold = circuitBreakerRequestVolumeThreshold;
             return this;
         }
 

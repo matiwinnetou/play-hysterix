@@ -1,7 +1,5 @@
 package com.github.mati1979.play.hysterix;
 
-import com.github.mati1979.play.hysterix.event.HysterixCommandEvent;
-import com.google.common.eventbus.Subscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.libs.F;
@@ -27,10 +25,14 @@ public class HysterixRequestLog {
 
     public HysterixRequestLog(final HysterixContext hysterixContext) {
         this.hysterixContext = hysterixContext;
-        hysterixContext.getEventBus().register(new Subscriber());
         if (hysterixContext.getHysterixSettings().isLogRequestStatistics()) {
             scheduleTimerTask();
         }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        logger.debug("HysterixRequestLog...garbage collecting...");
     }
 
     private void scheduleTimerTask() {
@@ -44,8 +46,9 @@ public class HysterixRequestLog {
         }, hysterixContext.getHysterixSettings().getLogRequestStatisticsTimeoutMs());
     }
 
-    private void addExecutedCommand(final HysterixCommand<?> command) {
+    public void addExecutedCommand(final HysterixCommand<?> command) {
         if (!executedCommands.offer(command)) {
+            logger.debug("commands.size:" + executedCommands.size());
             logger.warn("RequestLog ignoring command after reaching limit of " + MAX_STORAGE);
         }
     }
@@ -78,13 +81,10 @@ public class HysterixRequestLog {
         return F.Promise.wrap(future);
     }
 
-    private final class Subscriber {
-
-        @Subscribe
-        public void onEvent(final HysterixCommandEvent hysterixCommandEvent) {
-            addExecutedCommand(hysterixCommandEvent.getHysterixCommand());
-        }
-
-    }
+//    @Subscribe
+//    public void onEvent(final HysterixCommandEvent hysterixCommandEvent) {
+//        logger.debug("HysterixRequestLog.onEvent:" + hysterixCommandEvent);
+//        addExecutedCommand(hysterixCommandEvent.getHysterixCommand());
+//    }
 
 }
