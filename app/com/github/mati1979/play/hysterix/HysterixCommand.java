@@ -73,11 +73,12 @@ public abstract class HysterixCommand<T> {
 
     private F.Promise<T> tryCall() {
         if (!hysterixCircuitBreaker.allowRequest()) {
-            if (getFallbackTo().isPresent()) {
-                logger.warn("circuit breaker open - falling back");
-                metadata.markShortCircuited();
-                return getFallbackTo().get();
-            }
+            throw new RuntimeException("circuit closed");
+//            if (getFallbackTo().isPresent()) {
+//                logger.warn("circuit breaker open - falling back");
+//                metadata.markShortCircuited();
+//                return getFallbackTo().get();
+//            }
         }
 
         if (isRequestCachingDisabled() || !getRequestCacheKey().isPresent()) {
