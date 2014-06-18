@@ -15,20 +15,21 @@ public class HysterixGlobalStatistics {
     private final HysterixSettings hysterixSettings;
     private final String key;
 
-    private Histogram rollingCountFailure = createHistogram();
-    private Histogram rollingCountResponsesFromCache = createHistogram();
-    private Histogram rollingCountFallbackSuccess = createHistogram();
-    private Histogram rollingCountFallbackFailure = createHistogram();
-    private Histogram rollingCountShortCircuited = createHistogram();
-    private Histogram rollingCountExceptionsThrown = createHistogram();
-    private Histogram rollingCountSuccess = createHistogram();
-    private Histogram rollingCountTimeout = createHistogram();
+    private Histogram rollingCountFailure;
+    private Histogram rollingCountResponsesFromCache;
+    private Histogram rollingCountFallbackSuccess;
+    private Histogram rollingCountFallbackFailure;
+    private Histogram rollingCountShortCircuited;
+    private Histogram rollingCountExceptionsThrown;
+    private Histogram rollingCountSuccess;
+    private Histogram rollingCountTimeout;
 
-    private Histogram averageExecutionTime = createHistogram();
+    private Histogram averageExecutionTime;
 
     public HysterixGlobalStatistics(final HysterixSettings hysterixSettings, final String key) {
         this.hysterixSettings = hysterixSettings;
         this.key = key;
+        clearStats();
     }
 
     public void clearStats() {
@@ -40,6 +41,7 @@ public class HysterixGlobalStatistics {
         rollingCountExceptionsThrown = createHistogram();
         rollingCountSuccess = createHistogram();
         rollingCountTimeout = createHistogram();
+        averageExecutionTime = createHistogram();
     }
 
     public String getKey() {
