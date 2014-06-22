@@ -31,16 +31,17 @@ public class HysterixHttpRequestsCache<T> {
             }
 
             if (promise.isPresent()) {
+                logger.debug("returning cached for command:" + command.getCommandKey() + ",id:" + command.getCommandId());
                 return promise.get().map(data -> new CacheResp<>(data, true));
             }
 
-            return handleOr(command);
+            return realGet(command);
         } finally {
             lock.unlock();
         }
     }
 
-    private F.Promise<CacheResp<T>> handleOr(final HysterixCommand<T> command) {
+    private F.Promise<CacheResp<T>> realGet(final HysterixCommand<T> command) {
         final F.Promise<T> tPromise = command.callRemote();
         promise = Optional.of(tPromise);
 
