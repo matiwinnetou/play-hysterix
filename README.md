@@ -70,9 +70,9 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 ## TODO
 - introduce a global statistics that does not include time window (whole session)
 - semaphore - to limit number of concurrent requests from a server to prevent (network and io contention)
+- configurable retry counter and retry delay - does not help to fail fast but somebody may like this
 - more intelligent circuit breaker, maybe slowly reducing load as opposed to binary flip, e.g. sentries project (https://github.com/erikvanoosten/sentries)
-- think of adding retry number and retry delay (does this make sense though - finagle has this?)
-- rewrite to scala and use Scala future, enable java api to work
+- rewrite to Scala and use Scala future, enable Java API to work
 - think over how to detect an end to web request -> in HysterixRequestLog (is really tricky, since we don't know number of requests upfront)
 - INSPECT THREAD SAFETY of the library
 - JavaDocs
