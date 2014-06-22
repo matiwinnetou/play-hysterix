@@ -32,12 +32,12 @@ public class HysterixCircuitBreakerHolder {
     }
 
     public DefaultHysterixCircuitBreaker getCircuitBreaker(final String commandGroupKey, final String commandKey) {
+        final String key = String.format("%s.%s", commandGroupKey, commandKey);
+
         try {
             lock.lock();
-            final String key = String.format("%s.%s", commandGroupKey, commandKey);
             final HysterixGlobalStatistics hysterixCacheMetrics = hysterixGlobalStatisticsHolder.getHysterixCacheMetrics(commandGroupKey, commandKey);
             final DefaultHysterixCircuitBreaker defaultHysterixCircuitBreaker = cache.getOrDefault(key, new DefaultHysterixCircuitBreaker(commandGroupKey, commandKey, hysterixCacheMetrics, hysterixSettings));
-
             cache.put(key, defaultHysterixCircuitBreaker);
 
             return defaultHysterixCircuitBreaker;

@@ -37,9 +37,10 @@ public class HysterixGlobalStatisticsHolder {
     }
 
     public HysterixGlobalStatistics getHysterixCacheMetrics(final String commandGroupKey, final String commandKey) {
+        final String key = String.format("%s.%s", commandGroupKey, commandKey);
+
         try {
             lock.lock();
-            final String key = String.format("%s.%s", commandGroupKey, commandKey);
             final HysterixGlobalStatistics hysterixGlobalStatistics = cache.getOrDefault(key, new HysterixGlobalStatistics(hysterixSettings, key));
 
             cache.put(key, hysterixGlobalStatistics);
