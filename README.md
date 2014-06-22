@@ -34,10 +34,10 @@ Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.3"
 
 ## Features:
 - graceful handling support for commands, also as a Promise (i.e. remote service call or plain value)
-- request based cache (without any request collapsers but using pure lazy promises)
-- async access to request cache for logging request metrics
-- initial rudimentary support for global metrics for all commands (HysterixGlobalStatistics) and streaming some data to hysterix-dashboard
-- safe - no memory leaks by design, hysterix request context should be garbage collected after each http request
+- request based cache (without any request collapsers but using promises)
+- async access to request cache for logging request metrics (timeout based)
+- support for global metrics for all commands (HysterixGlobalStatistics) and streaming some data to hysterix-dashboard (HysterixController)
+- safe - no memory leaks possibility by design, hysterix request context should be garbage collected after each http request
 
 ## Authors:
 - Mateusz Szczap
@@ -65,15 +65,15 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - 0.2.1 - improved generics handling, HysterixRequestsCache is now generics enabled + percentiles and bug fixes
 - 0.2.2 - concurrency bug fix in controller
 - 0.2.3 - initial support for circuit breaker + bug fixes
+- 0.2.4 - replaced synchronized with ReentrantLock and simplified request cache
 
 ## TODO
-- as it turns out http request cache doesn't need to be so complex (IMHO), caching a promise does exactly that
 - semaphore - to limit number of concurrent requests from a server to prevent (network and io contention)
 - more intelligent circuit breaker, maybe slowly reducing load as opposed to binary flip, e.g. sentries project (https://github.com/erikvanoosten/sentries)
-- think of adding retry number and retry delay (does this make sense though)
-- INSPECT THREAD SAFETY of the library
+- think of adding retry number and retry delay (does this make sense though - finagle has this?)
 - rewrite to scala and use Scala future, enable java api to work
 - think over how to detect an end to web request -> in HysterixRequestLog (is really tricky, since we don't know number of requests upfront)
+- INSPECT THREAD SAFETY of the library
 - JavaDocs
 - Unit tests
 
@@ -81,5 +81,5 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - use akka to publish metrics to a central server
 - graphite reporter?
 
-## Issues
+## Nice to solve
 - cyclic dep -> HysterixCommand <-> HysterixHttpRequestsCache
