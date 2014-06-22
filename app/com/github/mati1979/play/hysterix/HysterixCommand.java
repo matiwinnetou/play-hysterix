@@ -95,7 +95,7 @@ public abstract class HysterixCommand<T> {
         final HysterixRequestCacheHolder hysterixRequestCacheHolder = hysterixRequestContext.getHysterixRequestCacheHolder();
         final HysterixHttpRequestsCache<T> cache = hysterixRequestCacheHolder.getOrCreate(requestCacheKey);
 
-        return cache.addRequest(httpRequestId, this).execute(httpRequestId).map(cacheResp -> {
+        return cache.execute(this).map(cacheResp -> {
             if (cacheResp.isCacheHit()) {
                 getMetadata().markResponseFromCache();
             }
