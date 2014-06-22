@@ -81,10 +81,4 @@ public class HysterixRequestLog {
         return F.Promise.wrap(future);
     }
 
-//    @Subscribe
-//    public void onEvent(final HysterixCommandEvent hysterixCommandEvent) {
-//        logger.debug("HysterixRequestLog.onEvent:" + hysterixCommandEvent);
-//        addExecutedCommand(hysterixCommandEvent.getHysterixCommand());
-//    }
-
 }

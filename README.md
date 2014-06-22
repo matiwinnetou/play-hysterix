@@ -67,9 +67,12 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - 0.2.3 - initial support for circuit breaker + bug fixes
 
 ## TODO
+- semaphore - to limit number of concurrent requests from a server to prevent (network and io contention)
+- more intelligent circuit breaker, maybe slowly reducing load as opposed to binrary flip, e.g. sentries project (https://github.com/erikvanoosten/sentries)
+- think of adding retry number and retry delay
 - INSPECT THREAD SAFETY of the library
-- circuit breaker support
 - rewrite to scala and use Scala future, enable java api to work
+- think over how to detect an end to web request -> in HysterixRequestLog (maybe play filters?) -> play filter may not give us access to current hysterix request context
 - JavaDocs
 - Unit tests
 
