@@ -9,6 +9,7 @@ import com.google.common.collect.Maps;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by mszczap on 01.06.14.
@@ -19,26 +20,30 @@ public class HysterixCircuitBreakerHolder {
 
     private final HysterixGlobalStatisticsHolder hysterixGlobalStatisticsHolder;
     private final HysterixSettings hysterixSettings;
+    private ReentrantLock lock = new ReentrantLock(true);
 
     public HysterixCircuitBreakerHolder(final HysterixGlobalStatisticsHolder hysterixGlobalStatisticsHolder, final HysterixSettings hysterixSettings) {
         this.hysterixGlobalStatisticsHolder = hysterixGlobalStatisticsHolder;
         this.hysterixSettings = hysterixSettings;
     }
 
-    public synchronized DefaultHysterixCircuitBreaker getCircuitBreaker(final HysterixCommand hysterixCommand) {
-        final String commandGroupKey = (String) hysterixCommand.getCommandGroupKey().orElse("");
-
-        return getCircuitBreaker(commandGroupKey, hysterixCommand.getCommandKey());
+    public DefaultHysterixCircuitBreaker getCircuitBreaker(final HysterixCommand hysterixCommand) {
+        return getCircuitBreaker((String) hysterixCommand.getCommandGroupKey().orElse(""), hysterixCommand.getCommandKey());
     }
 
-    public synchronized DefaultHysterixCircuitBreaker getCircuitBreaker(final String commandGroupKey, final String commandKey) {
-        final String key = String.format("%s.%s", commandGroupKey, commandKey);
-        final HysterixGlobalStatistics hysterixCacheMetrics = hysterixGlobalStatisticsHolder.getHysterixCacheMetrics(commandGroupKey, commandKey);
-        final DefaultHysterixCircuitBreaker defaultHysterixCircuitBreaker = cache.getOrDefault(key, new DefaultHysterixCircuitBreaker(commandGroupKey, commandKey, hysterixCacheMetrics, hysterixSettings));
+    public DefaultHysterixCircuitBreaker getCircuitBreaker(final String commandGroupKey, final String commandKey) {
+        try {
+            lock.lock();
+            final String key = String.format("%s.%s", commandGroupKey, commandKey);
+            final HysterixGlobalStatistics hysterixCacheMetrics = hysterixGlobalStatisticsHolder.getHysterixCacheMetrics(commandGroupKey, commandKey);
+            final DefaultHysterixCircuitBreaker defaultHysterixCircuitBreaker = cache.getOrDefault(key, new DefaultHysterixCircuitBreaker(commandGroupKey, commandKey, hysterixCacheMetrics, hysterixSettings));
 
-        cache.put(key, defaultHysterixCircuitBreaker);
+            cache.put(key, defaultHysterixCircuitBreaker);
 
-        return defaultHysterixCircuitBreaker;
+            return defaultHysterixCircuitBreaker;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public Collection<DefaultHysterixCircuitBreaker> getAll() {

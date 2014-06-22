@@ -3,7 +3,7 @@ package com.github.mati1979.play.hysterix;
 import play.libs.F;
 
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by mati on 24/05/2014.
@@ -14,7 +14,9 @@ public class HysterixHttpRequestsCache<T> {
 
     private final String requestCacheKey;
 
-    private AtomicReference<Optional<F.Promise<T>>> promise = new AtomicReference<>(Optional.empty());
+    private ReentrantLock lock = new ReentrantLock(true);
+
+    private Optional<F.Promise<T>> promise = Optional.empty();
 
     public HysterixHttpRequestsCache(final String requestCacheKey) {
         this.requestCacheKey = requestCacheKey;
@@ -22,12 +24,27 @@ public class HysterixHttpRequestsCache<T> {
 
     //we can assume that commands coming here are already properly grouped commands
     public F.Promise<CacheResp<T>> execute(final HysterixCommand<T> command) {
-        if (shouldNotCache(command)) {
-            return command.callRemote().map(data -> new CacheResp(data, false));
-        }
+        try {
+            lock.lock();
+            if (shouldNotCache(command)) {
+                return command.callRemote().map(data -> new CacheResp(data, false));
+            }
 
-        return promise.get().map(dataP -> dataP.map(data -> new CacheResp<>(data, true)))
-               .orElse(command.callRemote().map(data -> new CacheResp<>(data, false)));
+            if (promise.isPresent()) {
+                return promise.get().map(data -> new CacheResp<>(data, true));
+            }
+
+            return handleOr(command);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private F.Promise<CacheResp<T>> handleOr(final HysterixCommand<T> command) {
+        final F.Promise<T> tPromise = command.callRemote();
+        promise = Optional.of(tPromise);
+
+        return tPromise.map(data -> new CacheResp<>(data, false));
     }
 
     private boolean shouldNotCache(final HysterixCommand<T> command) {

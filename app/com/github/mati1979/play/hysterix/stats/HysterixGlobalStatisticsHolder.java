@@ -11,6 +11,7 @@ import com.google.common.eventbus.Subscribe;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by mszczap on 01.06.14.
@@ -22,6 +23,8 @@ public class HysterixGlobalStatisticsHolder {
     private final HysterixSettings hysterixSettings;
     private final EventBus eventBus;
 
+    private ReentrantLock lock = new ReentrantLock(true);
+
     public HysterixGlobalStatisticsHolder(final HysterixSettings hysterixSettings,
                                           final EventBus eventBus) {
         this.hysterixSettings = hysterixSettings;
@@ -29,19 +32,22 @@ public class HysterixGlobalStatisticsHolder {
         eventBus.register(new Subscriber());
     }
 
-    public synchronized HysterixGlobalStatistics getHysterixCacheMetrics(final HysterixCommand hysterixCommand) {
-        final String commandGroupKey = (String) hysterixCommand.getCommandGroupKey().orElse("");
-
-        return getHysterixCacheMetrics(commandGroupKey, hysterixCommand.getCommandKey());
+    public HysterixGlobalStatistics getHysterixCacheMetrics(final HysterixCommand hysterixCommand) {
+        return getHysterixCacheMetrics((String) hysterixCommand.getCommandGroupKey().orElse(""), hysterixCommand.getCommandKey());
     }
 
-    public synchronized HysterixGlobalStatistics getHysterixCacheMetrics(final String commandGroupKey, final String commandKey) {
-        final String key = String.format("%s.%s", commandGroupKey, commandKey);
-        final HysterixGlobalStatistics hysterixGlobalStatistics = cache.getOrDefault(key, new HysterixGlobalStatistics(hysterixSettings, key));
+    public HysterixGlobalStatistics getHysterixCacheMetrics(final String commandGroupKey, final String commandKey) {
+        try {
+            lock.lock();
+            final String key = String.format("%s.%s", commandGroupKey, commandKey);
+            final HysterixGlobalStatistics hysterixGlobalStatistics = cache.getOrDefault(key, new HysterixGlobalStatistics(hysterixSettings, key));
 
-        cache.put(key, hysterixGlobalStatistics);
+            cache.put(key, hysterixGlobalStatistics);
 
-        return hysterixGlobalStatistics;
+            return hysterixGlobalStatistics;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public Collection<HysterixGlobalStatistics> getAll() {
