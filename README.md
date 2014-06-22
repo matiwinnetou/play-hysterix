@@ -68,6 +68,7 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - 0.2.4 - replaced synchronized with ReentrantLock and simplified request cache
 
 ## TODO
+- introduce a global statistics that does not include time window (whole session)
 - semaphore - to limit number of concurrent requests from a server to prevent (network and io contention)
 - more intelligent circuit breaker, maybe slowly reducing load as opposed to binary flip, e.g. sentries project (https://github.com/erikvanoosten/sentries)
 - think of adding retry number and retry delay (does this make sense though - finagle has this?)
