@@ -30,7 +30,7 @@ status: in development, use at own risk (interface may change and may be buggy),
 
 http://repo1.maven.org/maven2/pl/matisoft/play-hysterix_2.10/
 
-Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.3"
+Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.4"
 
 ## Features:
 - graceful handling support for commands, also as a Promise (i.e. remote service call or plain value)
@@ -38,6 +38,7 @@ Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.3"
 - async access to request cache for logging request metrics (timeout based)
 - support for global metrics for all commands (HysterixGlobalStatistics) and streaming some data to hysterix-dashboard (HysterixController)
 - safe - no memory leaks possibility by design, hysterix request context should be garbage collected after each http request
+- time windowed and global statistics for requests (master)
 
 ## Authors:
 - Mateusz Szczap
@@ -66,21 +67,14 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - 0.2.2 - concurrency bug fix in controller
 - 0.2.3 - initial support for circuit breaker + bug fixes
 - 0.2.4 - replaced synchronized with ReentrantLock and simplified request cache
+next (snapshot) - time windowed and global statistics for requests
 
 ## TODO
-- introduce a global statistics that does not include time window (whole session)
+- graphite reporter
 - semaphore - to limit number of concurrent requests from a server to prevent (network and io contention)
 - configurable retry counter and retry delay - does not help to fail fast but somebody may like this
 - more intelligent circuit breaker, maybe slowly reducing load as opposed to binary flip, e.g. sentries project (https://github.com/erikvanoosten/sentries)
 - rewrite to Scala and use Scala future, enable Java API to work
-- think over how to detect an end to web request -> in HysterixRequestLog (is really tricky, since we don't know number of requests upfront)
-- INSPECT THREAD SAFETY of the library
+- think over how to detect an end to web request -> in HysterixRequestLog (is really tricky, since we don't know number of requests (commands) upfront)
 - JavaDocs
 - Unit tests
-
-## REAL FUTURE
-- use akka to publish metrics to a central server
-- graphite reporter?
-
-## Nice to solve
-- cyclic dep -> HysterixCommand <-> HysterixHttpRequestsCache

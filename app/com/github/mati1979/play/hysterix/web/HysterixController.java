@@ -69,39 +69,39 @@ public class HysterixController extends Controller {
             data.put("name", event.getEvent().getHysterixCommand().getCommandKey());
             data.put("group", (String) event.getEvent().getHysterixCommand().getCommandGroupKey().orElse(""));
             data.put("currentTime", event.getEvent().getCurrentTime());
-            data.put("errorPercentage", event.getStats().getErrorPercentage());
+            data.put("errorPercentage", event.getTimeWindowedMetrics().getErrorPercentage());
             data.put("isCircuitBreakerOpen", event.getEvent().getHysterixCommand().getHysterixCircuitBreaker().isOpen());
-            data.put("errorCount", event.getStats().getErrorCount());
-            data.put("requestCount", event.getStats().getTotalCount());
-            data.put("rollingCountCollapsedRequests", event.getStats().getRollingCountResponsesFromCache());
-            data.put("rollingCountExceptionsThrown", event.getStats().getRollingCountExceptionsThrown());
-            data.put("rollingCountFailure", event.getStats().getRollingCountFailure());
-            data.put("rollingCountFallbackFailure", event.getStats().getRollingCountFallbackFailure());
-            data.put("rollingCountFallbackRejection", 0); //TODO
-            data.put("rollingCountFallbackSuccess", event.getStats().getRollingCountFallbackSuccess());
-            data.put("rollingCountResponsesFromCache", event.getStats().getRollingCountResponsesFromCache());
+            data.put("errorCount", event.getTimeWindowedMetrics().getErrorCount());
+            data.put("requestCount", event.getTimeWindowedMetrics().getTotalCount());
+            data.put("rollingCountCollapsedRequests", event.getTimeWindowedMetrics().getCountResponsesFromCache());
+            data.put("rollingCountExceptionsThrown", event.getTimeWindowedMetrics().getCountExceptionsThrown());
+            data.put("rollingCountFailure", event.getTimeWindowedMetrics().getCountFailure());
+            data.put("rollingCountFallbackFailure", event.getTimeWindowedMetrics().getCountFallbackFailure());
+            data.put("rollingCountFallbackRejection", 0); //TODO, think over when do we reject fallback?
+            data.put("rollingCountFallbackSuccess", event.getTimeWindowedMetrics().geCountFallbackSuccess());
+            data.put("rollingCountResponsesFromCache", event.getTimeWindowedMetrics().getCountResponsesFromCache());
             data.put("rollingCountSemaphoreRejected", 0); //TODO only when semaphore implemented
-            data.put("rollingCountShortCircuited", event.getStats().getRollingCountShortCircuited());
-            data.put("rollingCountSuccess", event.getStats().getRollingSuccessWithoutRequestCache());
+            data.put("rollingCountShortCircuited", event.getTimeWindowedMetrics().getCountShortCircuited());
+            data.put("rollingCountSuccess", event.getTimeWindowedMetrics().getSuccessWithoutRequestCache());
             data.put("rollingCountThreadPoolRejected", 0);
-            data.put("rollingCountTimeout", event.getStats().getRollingTimeoutCount());
+            data.put("rollingCountTimeout", event.getTimeWindowedMetrics().getTimeoutCount());
             data.put("currentConcurrentExecutionCount", 0); //TODO
-            data.put("latencyExecute_mean", event.getStats().getAverageExecutionTime());
+            data.put("latencyExecute_mean", event.getTimeWindowedMetrics().getAverageExecutionTime());
 
             final ObjectNode percentiles = Json.newObject();
-            percentiles.put("0", event.getStats().getAverageExecutionTimePercentile(0.0D));
-            percentiles.put("25", event.getStats().getAverageExecutionTimePercentile(0.25D));
-            percentiles.put("50", event.getStats().getAverageExecutionTimePercentile(0.50D));
-            percentiles.put("75", event.getStats().getAverageExecutionTimePercentile(0.75D));
-            percentiles.put("90", event.getStats().getAverageExecutionTimePercentile(0.90D));
-            percentiles.put("95", event.getStats().getAverageExecutionTimePercentile(0.95D));
-            percentiles.put("99", event.getStats().getAverageExecutionTimePercentile(0.99D));
-            percentiles.put("99.5", event.getStats().getAverageExecutionTimePercentile(0.995D));
-            percentiles.put("100", event.getStats().getAverageExecutionTimePercentile(1.0D));
+            percentiles.put("0", event.getTimeWindowedMetrics().getAverageExecutionTimePercentile(0.0D));
+            percentiles.put("25", event.getTimeWindowedMetrics().getAverageExecutionTimePercentile(0.25D));
+            percentiles.put("50", event.getTimeWindowedMetrics().getAverageExecutionTimePercentile(0.50D));
+            percentiles.put("75", event.getTimeWindowedMetrics().getAverageExecutionTimePercentile(0.75D));
+            percentiles.put("90", event.getTimeWindowedMetrics().getAverageExecutionTimePercentile(0.90D));
+            percentiles.put("95", event.getTimeWindowedMetrics().getAverageExecutionTimePercentile(0.95D));
+            percentiles.put("99", event.getTimeWindowedMetrics().getAverageExecutionTimePercentile(0.99D));
+            percentiles.put("99.5", event.getTimeWindowedMetrics().getAverageExecutionTimePercentile(0.995D));
+            percentiles.put("100", event.getTimeWindowedMetrics().getAverageExecutionTimePercentile(1.0D));
 
             data.put("latencyExecute", percentiles);
 
-            data.put("latencyTotal_mean", event.getStats().getAverageExecutionTime());
+            data.put("latencyTotal_mean", event.getTimeWindowedMetrics().getAverageExecutionTime());
             data.put("latencyTotal", percentiles);
 
             data.put("propertyValue_circuitBreakerRequestVolumeThreshold", hysterixContext.getHysterixSettings().getCircuitBreakerRequestVolumeThreshold());

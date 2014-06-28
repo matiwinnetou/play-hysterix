@@ -37,10 +37,6 @@ public abstract class HysterixCommand<T> {
         return HysterixCircuitBreaker.NULL;
     }
 
-    public Optional<String> getCallingClient() {
-        return Optional.empty();
-    }
-
     public abstract String getCommandKey();
 
     public Optional<String> getCommandGroupKey() {

@@ -1,7 +1,7 @@
 package com.github.mati1979.play.hysterix.circuit;
 
 import com.github.mati1979.play.hysterix.HysterixSettings;
-import com.github.mati1979.play.hysterix.stats.HysterixGlobalStatistics;
+import com.github.mati1979.play.hysterix.stats.RollingHysterixGlobalStatistics;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -15,7 +15,7 @@ public class DefaultHysterixCircuitBreaker implements HysterixCircuitBreaker {
     private final String commandKey;
 
     private final HysterixSettings hysterixSettings;
-    private final HysterixGlobalStatistics hysterixGlobalStatistics;
+    private final RollingHysterixGlobalStatistics rollingHysterixGlobalStatistics;
 
     /* track whether this circuit is open/closed at any given point in time (default to false==closed) */
     private AtomicBoolean circuitOpen = new AtomicBoolean(false);
@@ -25,11 +25,11 @@ public class DefaultHysterixCircuitBreaker implements HysterixCircuitBreaker {
 
     public DefaultHysterixCircuitBreaker(final String commandGroupKey,
                                          final String commandKey,
-                                         final HysterixGlobalStatistics hysterixGlobalStatistics,
+                                         final RollingHysterixGlobalStatistics rollingHysterixGlobalStatistics,
                                          final HysterixSettings hystrixSettings) {
         this.commandGroupKey = commandGroupKey;
         this.commandKey = commandKey;
-        this.hysterixGlobalStatistics = hysterixGlobalStatistics;
+        this.rollingHysterixGlobalStatistics = rollingHysterixGlobalStatistics;
         this.hysterixSettings = hystrixSettings;
     }
 
@@ -44,7 +44,7 @@ public class DefaultHysterixCircuitBreaker implements HysterixCircuitBreaker {
     @Override
     public void markSuccess() {
         if (circuitOpen.get()) {
-            hysterixGlobalStatistics.clearStats();
+            rollingHysterixGlobalStatistics.clearStats();
             circuitOpen.set(false);
         }
     }
@@ -63,10 +63,10 @@ public class DefaultHysterixCircuitBreaker implements HysterixCircuitBreaker {
 
     @Override
     public boolean allowSingleTest() {
-        long timeCircuitOpenedOrWasLastTested = circuitOpenedOrLastTestedTime.get();
+        final long timeCircuitOpenedOrWasLastTested = circuitOpenedOrLastTestedTime.get();
         // 1) if the circuit is open
         // 2) and it's been longer than 'sleepWindow' since we opened the circuit
-        if (circuitOpen.get() && System.currentTimeMillis() > timeCircuitOpenedOrWasLastTested + hysterixSettings.getCircuitBreakerSleepWindowInMilliseconds()) {
+        if (isOpenAndPastSleepWindow(timeCircuitOpenedOrWasLastTested)) {
             // We push the 'circuitOpenedTime' ahead by 'sleepWindow' since we have allowed one request to try.
             // If it succeeds the circuit will be closed, otherwise another singleTest will be allowed at the end of the 'sleepWindow'.
             if (circuitOpenedOrLastTestedTime.compareAndSet(timeCircuitOpenedOrWasLastTested, System.currentTimeMillis())) {
@@ -79,6 +79,12 @@ public class DefaultHysterixCircuitBreaker implements HysterixCircuitBreaker {
         return false;
     }
 
+    private boolean isOpenAndPastSleepWindow(final long timeCircuitOpenedOrWasLastTested) {
+        final long lastTestedPlusSleepWindowTime = timeCircuitOpenedOrWasLastTested + hysterixSettings.getCircuitBreakerSleepWindowInMilliseconds();
+
+        return circuitOpen.get() && System.currentTimeMillis() > lastTestedPlusSleepWindowTime;
+    }
+
     @Override
     public boolean isOpen() {
         if (circuitOpen.get()) {
@@ -87,12 +93,12 @@ public class DefaultHysterixCircuitBreaker implements HysterixCircuitBreaker {
         }
 
         // check if we are past the statisticalWindowVolumeThreshold
-        if (hysterixGlobalStatistics.getTotalCount() < hysterixSettings.getCircuitBreakerRequestVolumeThreshold()) {
+        if (isPassedStatisticalRequestVolumeThreshold()) {
             // we are not past the minimum volume threshold for the statisticalWindow so we'll return false immediately and not calculate anything
             return false;
         }
 
-        if (hysterixGlobalStatistics.getErrorPercentage() < hysterixSettings.getCircuitBreakerErrorThresholdPercentage()) {
+        if (checkErrorRate()) {
             return false;
         }
 
@@ -106,6 +112,14 @@ public class DefaultHysterixCircuitBreaker implements HysterixCircuitBreaker {
         }
 
         return false;
+    }
+
+    private boolean checkErrorRate() {
+        return rollingHysterixGlobalStatistics.getErrorPercentage() < hysterixSettings.getCircuitBreakerErrorThresholdPercentage();
+    }
+
+    private boolean isPassedStatisticalRequestVolumeThreshold() {
+        return rollingHysterixGlobalStatistics.getTotalCount() < hysterixSettings.getCircuitBreakerRequestVolumeThreshold();
     }
 
 }

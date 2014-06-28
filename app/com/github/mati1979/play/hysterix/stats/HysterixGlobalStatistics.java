@@ -1,163 +1,44 @@
 package com.github.mati1979.play.hysterix.stats;
 
 import com.github.mati1979.play.hysterix.HysterixResponseMetadata;
-import com.github.mati1979.play.hysterix.HysterixSettings;
-import com.yammer.metrics.Histogram;
-import com.yammer.metrics.SlidingTimeWindowReservoir;
-
-import java.util.concurrent.TimeUnit;
 
 /**
- * Created by mszczap on 01.06.14.
+ * Created by mati on 28/06/2014.
  */
-public class HysterixGlobalStatistics {
+public interface HysterixGlobalStatistics {
 
-    private final HysterixSettings hysterixSettings;
-    private final String key;
+    void clearStats();
 
-    private Histogram rollingCountFailure;
-    private Histogram rollingCountResponsesFromCache;
-    private Histogram rollingCountFallbackSuccess;
-    private Histogram rollingCountFallbackFailure;
-    private Histogram rollingCountShortCircuited;
-    private Histogram rollingCountExceptionsThrown;
-    private Histogram rollingCountSuccess;
-    private Histogram rollingCountTimeout;
+    String getKey();
 
-    private Histogram averageExecutionTime;
+    long getErrorCount();
 
-    public HysterixGlobalStatistics(final HysterixSettings hysterixSettings, final String key) {
-        this.hysterixSettings = hysterixSettings;
-        this.key = key;
-        clearStats();
-    }
+    long getTotalCount();
 
-    public void clearStats() {
-        rollingCountFailure = createHistogram();
-        rollingCountResponsesFromCache = createHistogram();
-        rollingCountFallbackSuccess = createHistogram();
-        rollingCountFallbackFailure = createHistogram();
-        rollingCountShortCircuited = createHistogram();
-        rollingCountExceptionsThrown = createHistogram();
-        rollingCountSuccess = createHistogram();
-        rollingCountTimeout = createHistogram();
-        averageExecutionTime = createHistogram();
-    }
+    long getSuccessWithoutRequestCache();
 
-    public String getKey() {
-        return key;
-    }
+    long getCountShortCircuited();
 
-    void notify(final HysterixResponseMetadata metadata) {
-        if (metadata.isSuccessfulExecution()) {
-            rollingCountSuccess.update(1);
-        }
-        if (metadata.isFailedExecution()) {
-            rollingCountFailure.update(1);
-        }
-        if (metadata.isResponseTimeout()) {
-            rollingCountTimeout.update(1);
-        }
-        if (metadata.isFallbackSuccess()) {
-            rollingCountFallbackSuccess.update(1);
-        }
-        if (metadata.isFallbackFailed()) {
-            rollingCountFallbackFailure.update(1);
-        }
-        if (metadata.isExceptionThrown()) {
-            rollingCountExceptionsThrown.update(1);
-        }
-        if (metadata.isResponseFromCache()) {
-            rollingCountResponsesFromCache.update(1);
-        }
-        if (metadata.isShortCircuited()) {
-            rollingCountShortCircuited.update(1);
-        }
-        averageExecutionTime.update(metadata.getExecutionTime(TimeUnit.MILLISECONDS));
-    }
+    long getCountSuccess();
 
-    public long getErrorCount() {
-        return getRollingCountFailure() + getRollingTimeoutCount() + getRollingCountExceptionsThrown() + getRollingCountShortCircuited();
-    }
+    long getCountFailure();
 
-    public long getTotalCount() {
-        return getRollingSuccessWithoutRequestCache() + getRollingCountFailure() + getRollingTimeoutCount() + getRollingCountExceptionsThrown() + getRollingCountShortCircuited();
-    }
+    long getCountResponsesFromCache();
 
-    public long getRollingSuccessWithoutRequestCache() {
-        return getRollingCountSuccess() - getRollingCountResponsesFromCache();
-    }
+    long geCountFallbackSuccess();
 
-    public long getRollingCountShortCircuited() {
-        return rollingCountShortCircuited.getSnapshot().size();
-    }
+    long getCountFallbackFailure();
 
-    public long getRollingCountSuccess() {
-        return rollingCountSuccess.getSnapshot().size();
-    }
+    long getCountExceptionsThrown();
 
-    public long getRollingCountFailure() {
-        return rollingCountFailure.getSnapshot().size();
-    }
+    long getTimeoutCount();
 
-    public long getRollingCountResponsesFromCache() {
-        return rollingCountResponsesFromCache.getSnapshot().size();
-    }
+    int getErrorPercentage();
 
-    public long getRollingCountFallbackSuccess() {
-        return rollingCountFallbackSuccess.getSnapshot().size();
-    }
+    long getAverageExecutionTime();
 
-    public long getRollingCountFallbackFailure() {
-        return rollingCountFallbackFailure.getSnapshot().size();
-    }
+    long getAverageExecutionTimePercentile(double quantile);
 
-    public long getRollingCountExceptionsThrown() {
-        return rollingCountExceptionsThrown.getSnapshot().size();
-    }
-
-    public long getRollingTimeoutCount() {
-        return rollingCountTimeout.getSnapshot().size();
-    }
-
-    public int getErrorPercentage() {
-        int errorPercentage = 0;
-
-        if (getTotalCount() > 0) {
-            errorPercentage = (int) ((double) getErrorCount() / getTotalCount() * 100);
-        }
-
-        return errorPercentage;
-    }
-
-    public long getAverageExecutionTime() {
-        return Math.round(averageExecutionTime.getSnapshot().getMean());
-    }
-
-    public long getAverageExecutionTimePercentile(final double quantile) {
-        return Math.round(averageExecutionTime.getSnapshot().getValue(quantile));
-    }
-
-    private Histogram createHistogram() {
-        final long rollingTimeWindowIntervalInMs = hysterixSettings.getRollingTimeWindowIntervalInMs();
-
-        return new Histogram(new SlidingTimeWindowReservoir(rollingTimeWindowIntervalInMs, TimeUnit.MILLISECONDS));
-    }
-
-    @Override
-    public String toString() {
-        return "HysterixGlobalStatistics{" +
-                "hysterixSettings=" + hysterixSettings +
-                ", key='" + key + '\'' +
-                ", rollingCountFailure=" + rollingCountFailure +
-                ", rollingCountResponsesFromCache=" + rollingCountResponsesFromCache +
-                ", rollingCountFallbackSuccess=" + rollingCountFallbackSuccess +
-                ", rollingCountFallbackFailure=" + rollingCountFallbackFailure +
-                ", rollingCountExceptionsThrown=" + rollingCountExceptionsThrown +
-                ", rollingCountSuccess=" + rollingCountSuccess +
-                ", rollingCountTimeout=" + rollingCountTimeout +
-                ", averageExecutionTime=" + averageExecutionTime +
-                '}';
-    }
+    void notify(final HysterixResponseMetadata metadata);
 
 }

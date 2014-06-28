@@ -30,12 +30,9 @@ public class HysterixRequestLog {
         }
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        logger.debug("HysterixRequestLog...garbage collecting...");
-    }
-
     private void scheduleTimerTask() {
+        final long timeoutInMs = hysterixContext.getHysterixSettings().getLogRequestStatisticsTimeoutMs();
+
         final Timer timer = new Timer(false);
         timer.schedule(new TimerTask() {
             @Override
@@ -43,7 +40,7 @@ public class HysterixRequestLog {
                 notifyPromises();
             }
 
-        }, hysterixContext.getHysterixSettings().getLogRequestStatisticsTimeoutMs());
+        }, timeoutInMs);
     }
 
     public void addExecutedCommand(final HysterixCommand<?> command) {
@@ -69,7 +66,7 @@ public class HysterixRequestLog {
 
     public F.Promise<Collection<HysterixCommand<?>>> executedCommands() {
         if (!hysterixContext.getHysterixSettings().isLogRequestStatistics()) {
-            throw new RuntimeException("Cannot inspect log, you have to enable request log inspect via hystrix settings");
+            throw new RuntimeException("Cannot inspect log, you have to enable request log inspect via hysterix settings");
         }
         scala.concurrent.Promise<Collection<HysterixCommand<?>>> promise =
                 scala.concurrent.Promise$.MODULE$.<Collection<HysterixCommand<?>>>apply();

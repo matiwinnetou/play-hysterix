@@ -2,7 +2,7 @@ package com.github.mati1979.play.hysterix.circuit;
 
 import com.github.mati1979.play.hysterix.HysterixCommand;
 import com.github.mati1979.play.hysterix.HysterixSettings;
-import com.github.mati1979.play.hysterix.stats.HysterixGlobalStatistics;
+import com.github.mati1979.play.hysterix.stats.RollingHysterixGlobalStatistics;
 import com.github.mati1979.play.hysterix.stats.HysterixGlobalStatisticsHolder;
 import com.google.common.collect.Maps;
 
@@ -36,7 +36,7 @@ public class HysterixCircuitBreakerHolder {
 
         try {
             lock.lock();
-            final HysterixGlobalStatistics hysterixCacheMetrics = hysterixGlobalStatisticsHolder.getHysterixCacheMetrics(commandGroupKey, commandKey);
+            final RollingHysterixGlobalStatistics hysterixCacheMetrics = hysterixGlobalStatisticsHolder.getTimeWindowedMetrics(commandGroupKey, commandKey);
             final DefaultHysterixCircuitBreaker defaultHysterixCircuitBreaker = cache.getOrDefault(key, new DefaultHysterixCircuitBreaker(commandGroupKey, commandKey, hysterixCacheMetrics, hysterixSettings));
             cache.put(key, defaultHysterixCircuitBreaker);
 

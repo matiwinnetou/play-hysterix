@@ -18,12 +18,14 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class HysterixGlobalStatisticsHolder {
 
-    private final Map<String, HysterixGlobalStatistics> cache = Maps.newConcurrentMap();
+    private final Map<String, RollingHysterixGlobalStatistics> rollingCache = Maps.newConcurrentMap();
+    private final Map<String, GlobalHysterixGlobalStatistics> globalCache = Maps.newConcurrentMap();
 
     private final HysterixSettings hysterixSettings;
     private final EventBus eventBus;
 
-    private ReentrantLock lock = new ReentrantLock(true);
+    private ReentrantLock rollingLock = new ReentrantLock(true);
+    private ReentrantLock globalLock = new ReentrantLock(true);
 
     public HysterixGlobalStatisticsHolder(final HysterixSettings hysterixSettings,
                                           final EventBus eventBus) {
@@ -32,38 +34,59 @@ public class HysterixGlobalStatisticsHolder {
         eventBus.register(new Subscriber());
     }
 
-    public HysterixGlobalStatistics getHysterixCacheMetrics(final HysterixCommand hysterixCommand) {
-        return getHysterixCacheMetrics((String) hysterixCommand.getCommandGroupKey().orElse(""), hysterixCommand.getCommandKey());
+    public RollingHysterixGlobalStatistics getTimeWindowedMetrics(final HysterixCommand hysterixCommand) {
+        return getTimeWindowedMetrics((String) hysterixCommand.getCommandGroupKey().orElse(""), hysterixCommand.getCommandKey());
     }
 
-    public HysterixGlobalStatistics getHysterixCacheMetrics(final String commandGroupKey, final String commandKey) {
+    public RollingHysterixGlobalStatistics getTimeWindowedMetrics(final String commandGroupKey, final String commandKey) {
         final String key = String.format("%s.%s", commandGroupKey, commandKey);
 
         try {
-            lock.lock();
-            final HysterixGlobalStatistics hysterixGlobalStatistics = cache.getOrDefault(key, new HysterixGlobalStatistics(hysterixSettings, key));
+            rollingLock.lock();
+            final RollingHysterixGlobalStatistics hysterixGlobalStatistics = rollingCache.getOrDefault(key, new RollingHysterixGlobalStatistics(hysterixSettings, key));
 
-            cache.put(key, hysterixGlobalStatistics);
+            rollingCache.put(key, hysterixGlobalStatistics);
 
             return hysterixGlobalStatistics;
         } finally {
-            lock.unlock();
+            rollingLock.unlock();
         }
     }
 
-    public Collection<HysterixGlobalStatistics> getAll() {
-        return Collections.unmodifiableCollection(cache.values());
+    public GlobalHysterixGlobalStatistics getGlobalMetrics(final HysterixCommand hysterixCommand) {
+        return getGlobalMetrics((String) hysterixCommand.getCommandGroupKey().orElse(""), hysterixCommand.getCommandKey());
+    }
+
+    public GlobalHysterixGlobalStatistics getGlobalMetrics(final String commandGroupKey, final String commandKey) {
+        final String key = String.format("%s.%s", commandGroupKey, commandKey);
+
+        try {
+            globalLock.lock();
+            final GlobalHysterixGlobalStatistics globalHysterixGlobalStatistics = globalCache.getOrDefault(key, new GlobalHysterixGlobalStatistics(hysterixSettings, key));
+
+            globalCache.put(key, globalHysterixGlobalStatistics);
+
+            return globalHysterixGlobalStatistics;
+        } finally {
+            globalLock.unlock();
+        }
+    }
+
+    public Collection<RollingHysterixGlobalStatistics> getAll() {
+        return Collections.unmodifiableCollection(rollingCache.values());
     }
 
     private final class Subscriber {
 
         @Subscribe
         public void onEvent(final HysterixCommandEvent event) {
-            final HysterixGlobalStatistics hysterixGlobalStatistics = getHysterixCacheMetrics(event.getHysterixCommand());
+            final RollingHysterixGlobalStatistics timeWindowedStats = getTimeWindowedMetrics(event.getHysterixCommand());
+            final GlobalHysterixGlobalStatistics globalStats = getGlobalMetrics(event.getHysterixCommand());
             if (hysterixSettings.isLogGlobalStatistics()) {
-                hysterixGlobalStatistics.notify(event.getHysterixCommand().getMetadata());
+                timeWindowedStats.notify(event.getHysterixCommand().getMetadata());
+                globalStats.notify(event.getHysterixCommand().getMetadata());
             }
-            eventBus.post(new HysterixStatisticsEvent(event, hysterixGlobalStatistics));
+            eventBus.post(new HysterixStatisticsEvent(event, timeWindowedStats, globalStats));
         }
 
     }
