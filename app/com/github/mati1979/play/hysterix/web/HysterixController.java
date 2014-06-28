@@ -73,16 +73,16 @@ public class HysterixController extends Controller {
             data.put("isCircuitBreakerOpen", event.getEvent().getHysterixCommand().getHysterixCircuitBreaker().isOpen());
             data.put("errorCount", event.getTimeWindowedMetrics().getErrorCount());
             data.put("requestCount", event.getTimeWindowedMetrics().getTotalCount());
-            data.put("rollingCountCollapsedRequests", event.getTimeWindowedMetrics().getCountResponsesFromCache());
-            data.put("rollingCountExceptionsThrown", event.getTimeWindowedMetrics().getCountExceptionsThrown());
-            data.put("rollingCountFailure", event.getTimeWindowedMetrics().getCountFailure());
-            data.put("rollingCountFallbackFailure", event.getTimeWindowedMetrics().getCountFallbackFailure());
+            data.put("rollingCountCollapsedRequests", event.getTimeWindowedMetrics().getResponsesFromCacheCount());
+            data.put("rollingCountExceptionsThrown", event.getTimeWindowedMetrics().getExceptionsThrownCount());
+            data.put("rollingCountFailure", event.getTimeWindowedMetrics().getFailureCount());
+            data.put("rollingCountFallbackFailure", event.getTimeWindowedMetrics().getFallbackFailureCount());
             data.put("rollingCountFallbackRejection", 0); //TODO, think over when do we reject fallback?
-            data.put("rollingCountFallbackSuccess", event.getTimeWindowedMetrics().geCountFallbackSuccess());
-            data.put("rollingCountResponsesFromCache", event.getTimeWindowedMetrics().getCountResponsesFromCache());
+            data.put("rollingCountFallbackSuccess", event.getTimeWindowedMetrics().geFallbackSuccessCount());
+            data.put("rollingCountResponsesFromCache", event.getTimeWindowedMetrics().getResponsesFromCacheCount());
             data.put("rollingCountSemaphoreRejected", 0); //TODO only when semaphore implemented
-            data.put("rollingCountShortCircuited", event.getTimeWindowedMetrics().getCountShortCircuited());
-            data.put("rollingCountSuccess", event.getTimeWindowedMetrics().getSuccessWithoutRequestCache());
+            data.put("rollingCountShortCircuited", event.getTimeWindowedMetrics().getShortCircuitedCount());
+            data.put("rollingCountSuccess", event.getTimeWindowedMetrics().getSuccessWithoutRequestCacheCount());
             data.put("rollingCountThreadPoolRejected", 0);
             data.put("rollingCountTimeout", event.getTimeWindowedMetrics().getTimeoutCount());
             data.put("currentConcurrentExecutionCount", 0); //TODO

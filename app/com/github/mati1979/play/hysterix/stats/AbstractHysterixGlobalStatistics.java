@@ -87,51 +87,51 @@ public abstract class AbstractHysterixGlobalStatistics implements HysterixGlobal
 
     @Override
     public long getErrorCount() {
-        return getCountFailure() + getTimeoutCount() + getCountExceptionsThrown() + getCountShortCircuited();
+        return getFailureCount() + getTimeoutCount() + getExceptionsThrownCount() + getShortCircuitedCount();
     }
 
     @Override
     public long getTotalCount() {
-        return getSuccessWithoutRequestCache() + getCountFailure() + getTimeoutCount() + getCountExceptionsThrown() + getCountShortCircuited();
+        return getSuccessWithoutRequestCacheCount() + getFailureCount() + getTimeoutCount() + getExceptionsThrownCount() + getShortCircuitedCount();
     }
 
     @Override
-    public long getSuccessWithoutRequestCache() {
-        return getCountSuccess() - getCountResponsesFromCache();
+    public long getSuccessWithoutRequestCacheCount() {
+        return getSuccessCount() - getResponsesFromCacheCount();
     }
 
     @Override
-    public long getCountShortCircuited() {
+    public long getShortCircuitedCount() {
         return countShortCircuited.getSnapshot().size();
     }
 
     @Override
-    public long getCountSuccess() {
+    public long getSuccessCount() {
         return countSuccess.getSnapshot().size();
     }
 
     @Override
-    public long getCountFailure() {
+    public long getFailureCount() {
         return countFailure.getSnapshot().size();
     }
 
     @Override
-    public long getCountResponsesFromCache() {
+    public long getResponsesFromCacheCount() {
         return countResponsesFromCache.getSnapshot().size();
     }
 
     @Override
-    public long geCountFallbackSuccess() {
+    public long geFallbackSuccessCount() {
         return countFallbackSuccess.getSnapshot().size();
     }
 
     @Override
-    public long getCountFallbackFailure() {
+    public long getFallbackFailureCount() {
         return countFallbackFailure.getSnapshot().size();
     }
 
     @Override
-    public long getCountExceptionsThrown() {
+    public long getExceptionsThrownCount() {
         return countExceptionsThrown.getSnapshot().size();
     }
 

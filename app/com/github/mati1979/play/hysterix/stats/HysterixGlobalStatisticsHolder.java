@@ -72,8 +72,12 @@ public class HysterixGlobalStatisticsHolder {
         }
     }
 
-    public Collection<RollingHysterixGlobalStatistics> getAll() {
+    public Collection<RollingHysterixGlobalStatistics> getAllTimeWindowed() {
         return Collections.unmodifiableCollection(rollingCache.values());
+    }
+
+    public Collection<GlobalHysterixGlobalStatistics> getAllGlobal() {
+        return Collections.unmodifiableCollection(globalCache.values());
     }
 
     private final class Subscriber {

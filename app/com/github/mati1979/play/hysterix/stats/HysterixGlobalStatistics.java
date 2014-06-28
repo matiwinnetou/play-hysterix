@@ -15,21 +15,21 @@ public interface HysterixGlobalStatistics {
 
     long getTotalCount();
 
-    long getSuccessWithoutRequestCache();
+    long getSuccessWithoutRequestCacheCount();
 
-    long getCountShortCircuited();
+    long getShortCircuitedCount();
 
-    long getCountSuccess();
+    long getSuccessCount();
 
-    long getCountFailure();
+    long getFailureCount();
 
-    long getCountResponsesFromCache();
+    long getResponsesFromCacheCount();
 
-    long geCountFallbackSuccess();
+    long geFallbackSuccessCount();
 
-    long getCountFallbackFailure();
+    long getFallbackFailureCount();
 
-    long getCountExceptionsThrown();
+    long getExceptionsThrownCount();
 
     long getTimeoutCount();
 
