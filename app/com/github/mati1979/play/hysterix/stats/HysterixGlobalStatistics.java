@@ -25,7 +25,7 @@ public interface HysterixGlobalStatistics {
 
     long getResponsesFromCacheCount();
 
-    long geFallbackSuccessCount();
+    long getFallbackSuccessCount();
 
     long getFallbackFailureCount();
 

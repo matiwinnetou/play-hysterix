@@ -78,7 +78,7 @@ public class HysterixController extends Controller {
             data.put("rollingCountFailure", event.getTimeWindowedMetrics().getFailureCount());
             data.put("rollingCountFallbackFailure", event.getTimeWindowedMetrics().getFallbackFailureCount());
             data.put("rollingCountFallbackRejection", 0); //TODO, think over when do we reject fallback?
-            data.put("rollingCountFallbackSuccess", event.getTimeWindowedMetrics().geFallbackSuccessCount());
+            data.put("rollingCountFallbackSuccess", event.getTimeWindowedMetrics().getFallbackSuccessCount());
             data.put("rollingCountResponsesFromCache", event.getTimeWindowedMetrics().getResponsesFromCacheCount());
             data.put("rollingCountSemaphoreRejected", 0); //TODO only when semaphore implemented
             data.put("rollingCountShortCircuited", event.getTimeWindowedMetrics().getShortCircuitedCount());

@@ -121,7 +121,7 @@ public abstract class AbstractHysterixGlobalStatistics implements HysterixGlobal
     }
 
     @Override
-    public long geFallbackSuccessCount() {
+    public long getFallbackSuccessCount() {
         return countFallbackSuccess.getSnapshot().size();
     }
 
