@@ -30,7 +30,7 @@ status: in development, use at own risk (interface may change and may be buggy),
 
 http://repo1.maven.org/maven2/pl/matisoft/play-hysterix_2.10/
 
-Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.4"
+Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.6"
 
 ## Features:
 - graceful handling support for commands, also as a Promise (i.e. remote service call or plain value)
@@ -67,7 +67,8 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - 0.2.2 - concurrency bug fix in controller
 - 0.2.3 - initial support for circuit breaker + bug fixes
 - 0.2.4 - replaced synchronized with ReentrantLock and simplified request cache
-next (snapshot) - time windowed and global statistics for requests
+- 0.2.5 - time windowed and global statistics for requests
+- 0.2.6 - typo fix in a method name
 
 ## TODO
 - graphite reporter
