@@ -5,7 +5,7 @@ organization := "pl.matisoft"
 
 name := "play-hysterix"
 
-version := "0.2.6"
+version := "0.2.7-SNAPSHOT"
 
 scalaVersion := "2.10.4"
 

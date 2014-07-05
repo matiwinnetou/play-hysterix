@@ -68,7 +68,8 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - 0.2.3 - initial support for circuit breaker + bug fixes
 - 0.2.4 - replaced synchronized with ReentrantLock and simplified request cache
 - 0.2.5 - time windowed and global statistics for requests
-- 0.2.6 - typo fix in a method name
+- 0.2.6 - (Play 2.3.x only) typo fix in a method name
+- 0.2.x - (Play 2.3.x only) changed remote calls from warn to error and improved concurrency
 
 ## TODO
 - graphite reporter

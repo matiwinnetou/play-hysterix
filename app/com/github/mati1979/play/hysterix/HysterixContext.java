@@ -33,16 +33,16 @@ public class HysterixContext {
         return hysterixGlobalStatisticsHolder;
     }
 
+    public HysterixCircuitBreakerHolder getHysterixCircuitBreakerHolder() {
+        return hysterixCircuitBreakerHolder;
+    }
+
     public HysterixSettings getHysterixSettings() {
         return hysterixSettings;
     }
 
     public EventBus getEventBus() {
         return eventBus;
-    }
-
-    public HysterixCircuitBreakerHolder getHysterixCircuitBreakerHolder() {
-        return hysterixCircuitBreakerHolder;
     }
 
     public static HysterixContext createDefault() {

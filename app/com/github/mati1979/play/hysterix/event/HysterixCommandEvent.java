@@ -7,8 +7,8 @@ import com.github.mati1979.play.hysterix.HysterixCommand;
  */
 public class HysterixCommandEvent {
 
-    private HysterixCommand command;
-    private long currentTime = System.currentTimeMillis();
+    private final HysterixCommand command;
+    private final long currentTime = System.currentTimeMillis();
 
     public HysterixCommandEvent(final HysterixCommand command) {
         this.command = command;

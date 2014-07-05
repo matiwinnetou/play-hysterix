@@ -13,9 +13,9 @@ public abstract class HysterixCommand<T> {
 
     protected final String httpRequestId = UUID.randomUUID().toString();
 
-    protected final HysterixRequestContext hysterixRequestContext;
-
     protected final HysterixResponseMetadata metadata = new HysterixResponseMetadata();
+
+    protected final HysterixRequestContext hysterixRequestContext;
 
     protected HysterixCommand(final HysterixRequestContext hysterixRequestContext) {
         this.hysterixRequestContext = hysterixRequestContext;
@@ -130,7 +130,7 @@ public abstract class HysterixCommand<T> {
     }
 
     private F.Promise<HysterixResponse<T>> onRecover(final Throwable t) throws Throwable {
-        logger.warn("Remote call failed, url:" + getRemoteUrl().orElse("?"), t);
+        logger.error("Remote call failed, url:" + getRemoteUrl().orElse("?"), t);
         final HysterixSettings hysterixSettings = hysterixRequestContext.getHysterixContext().getHysterixSettings();
         if (t instanceof java.util.concurrent.TimeoutException) {
             logger.warn("Timeout from service, url:" + getRemoteUrl().orElse("?"));
@@ -191,4 +191,5 @@ public abstract class HysterixCommand<T> {
                 ", metadata=" + metadata +
                 '}';
     }
+
 }
