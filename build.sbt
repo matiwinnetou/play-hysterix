@@ -5,9 +5,11 @@ organization := "pl.matisoft"
 
 name := "play-hysterix"
 
-version := "0.2.7-SNAPSHOT"
+version := "0.2.7"
 
 scalaVersion := "2.10.4"
+
+crossScalaVersions := Seq("2.10.4", "2.11.1")
 
 sonatypeSettings
   
