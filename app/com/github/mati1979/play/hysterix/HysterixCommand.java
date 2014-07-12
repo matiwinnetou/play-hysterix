@@ -70,7 +70,7 @@ public abstract class HysterixCommand<T> {
         if (!getHysterixCircuitBreaker().allowRequest()) {
             logger.debug("request not allowed - short circuit:" + getCommandKey());
             metadata.markShortCircuited();
-            return F.Promise.throwing(new RuntimeException("circuit breaker closed!"));
+            return F.Promise.throwing(new HysterixException("Circuit Breaker open!"));
         }
 
         logger.debug("request allowed..." + getCommandKey());

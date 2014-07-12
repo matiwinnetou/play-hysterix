@@ -70,6 +70,7 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - 0.2.5 - time windowed and global statistics for requests
 - 0.2.6 - (Play 2.3.x only) typo fix in a method name
 - 0.2.7 - (Play 2.3.x only) changed remote calls from warn to error and improved concurrency handling
+- 0.2.8 - (Play 2.3.x only) fixed a small bug in HysterixCommand, replaced new Timer, which created a new thread on each request with ScheduledExecutorService, moved to sbt release plugin, introduced runtime HysterixException
 
 ## TODO
 - graphite reporter

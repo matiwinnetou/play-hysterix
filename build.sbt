@@ -1,11 +1,13 @@
 import sbt.Keys._
-import scala.Some
+
+import sbtrelease._
+
+import ReleaseStateTransformations._
+import ReleaseKeys._
 
 organization := "pl.matisoft"
 
 name := "play-hysterix"
-
-version := "0.2.7"
 
 scalaVersion := "2.10.4"
 
@@ -16,6 +18,20 @@ sonatypeSettings
 releaseSettings
   
 publishMavenStyle := true
+
+releaseProcess := Seq[ReleaseStep](
+    checkSnapshotDependencies,
+    inquireVersions,
+    runClean,
+    runTest,
+    setReleaseVersion,
+    commitReleaseVersion,
+    tagRelease,
+    publishArtifacts,
+    setNextVersion,
+    commitNextVersion,
+    pushChanges)
+
 
 val commonSettings = Seq(
     javacOptions ++= Seq("-target", "1.8", "-source", "1.8"),

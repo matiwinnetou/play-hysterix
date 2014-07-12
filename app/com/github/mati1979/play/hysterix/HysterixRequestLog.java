@@ -7,9 +7,10 @@ import scala.concurrent.Future;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class HysterixRequestLog {
 
@@ -23,6 +24,8 @@ public class HysterixRequestLog {
 
     private final HysterixContext hysterixContext;
 
+    private ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+
     public HysterixRequestLog(final HysterixContext hysterixContext) {
         this.hysterixContext = hysterixContext;
         if (hysterixContext.getHysterixSettings().isLogRequestStatistics()) {
@@ -32,15 +35,7 @@ public class HysterixRequestLog {
 
     private void scheduleTimerTask() {
         final long timeoutInMs = hysterixContext.getHysterixSettings().getLogRequestStatisticsTimeoutMs();
-
-        final Timer timer = new Timer(false);
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                notifyPromises();
-            }
-
-        }, timeoutInMs);
+        scheduledExecutorService.schedule(() -> notifyPromises(), timeoutInMs, TimeUnit.MILLISECONDS);
     }
 
     public void addExecutedCommand(final HysterixCommand<?> command) {
@@ -66,7 +61,7 @@ public class HysterixRequestLog {
 
     public F.Promise<Collection<HysterixCommand<?>>> executedCommands() {
         if (!hysterixContext.getHysterixSettings().isLogRequestStatistics()) {
-            throw new RuntimeException("Cannot inspect log, you have to enable request log inspect via hysterix settings");
+            throw new HysterixException("Cannot inspect log, you have to enable request log inspect via hysterix settings");
         }
         scala.concurrent.Promise<Collection<HysterixCommand<?>>> promise =
                 scala.concurrent.Promise$.MODULE$.<Collection<HysterixCommand<?>>>apply();
