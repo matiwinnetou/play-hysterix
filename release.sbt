@@ -17,7 +17,7 @@ releaseProcess := Seq(
   setReleaseVersion,
   commitReleaseVersion,
   publishSignedArtifacts,
-  sonatypeRelease,
+  sonatypeReleaseReleaseStep,
   setNextVersion,
   commitNextVersion,
   pushChanges
@@ -33,4 +33,4 @@ lazy val publishSignedArtifactsAction = { st: State =>
   extracted.runAggregated(publishSigned in Global in ref, st)
 }
 
-lazy val sonatypeRelease = releaseTask(sonatypeReleaseAll in ThisProject)
+lazy val sonatypeReleaseReleaseStep = releaseTask(sonatypeReleaseAll in ThisProject)
