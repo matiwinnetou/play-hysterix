@@ -1,8 +1,8 @@
 package com.github.mati1979.play.hysterix.stats;
 
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.SlidingTimeWindowReservoir;
 import com.github.mati1979.play.hysterix.HysterixSettings;
-import com.yammer.metrics.Histogram;
-import com.yammer.metrics.SlidingTimeWindowReservoir;
 
 import java.util.concurrent.TimeUnit;
 

@@ -11,27 +11,9 @@ name := "play-hysterix"
 
 scalaVersion := "2.10.4"
 
-crossScalaVersions := Seq("2.10.4", "2.11.1")
+//crossScalaVersions := Seq("2.10.4", "2.11.1")
 
-sonatypeSettings
-  
-releaseSettings
-  
 publishMavenStyle := true
-
-releaseProcess := Seq[ReleaseStep](
-    checkSnapshotDependencies,
-    inquireVersions,
-    runClean,
-    runTest,
-    setReleaseVersion,
-    commitReleaseVersion,
-    tagRelease,
-    publishArtifacts,
-    setNextVersion,
-    commitNextVersion,
-    pushChanges)
-
 
 val commonSettings = Seq(
     javacOptions ++= Seq("-target", "1.8", "-source", "1.8"),
@@ -40,7 +22,7 @@ val commonSettings = Seq(
 
 lazy val main = (project in file(".")).settings(commonSettings:_*).enablePlugins(PlayJava)
 
-libraryDependencies += "com.yammer.metrics" % "metrics-core" % "3.0.0-BETA1"
+libraryDependencies += "com.codahale.metrics" % "metrics-core" % "3.0.2"
 
 libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % Test
 
