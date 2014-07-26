@@ -3,7 +3,6 @@ package com.github.mati1979.play.hysterix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.libs.F;
-import scala.concurrent.Future;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -20,7 +19,7 @@ public class HysterixRequestLog {
 
     private LinkedBlockingQueue<HysterixCommand<?>> executedCommands = new LinkedBlockingQueue<>(MAX_STORAGE);
 
-    private LinkedBlockingQueue<scala.concurrent.Promise<Collection<HysterixCommand<?>>>> promises = new LinkedBlockingQueue<>();
+    private LinkedBlockingQueue<F.RedeemablePromise<Collection<HysterixCommand<?>>>> promises = new LinkedBlockingQueue<>();
 
     private final HysterixContext hysterixContext;
 
@@ -63,14 +62,12 @@ public class HysterixRequestLog {
         if (!hysterixContext.getHysterixSettings().isLogRequestStatistics()) {
             throw new HysterixException("Cannot inspect log, you have to enable request log inspect via hysterix settings");
         }
-        scala.concurrent.Promise<Collection<HysterixCommand<?>>> promise =
-                scala.concurrent.Promise$.MODULE$.<Collection<HysterixCommand<?>>>apply();
+
+        final F.RedeemablePromise<Collection<HysterixCommand<?>>> promise = F.RedeemablePromise.empty();
 
         promises.add(promise);
 
-        final Future<Collection<HysterixCommand<?>>> future = promise.future();
-
-        return F.Promise.wrap(future);
+        return promise;
     }
 
 }
