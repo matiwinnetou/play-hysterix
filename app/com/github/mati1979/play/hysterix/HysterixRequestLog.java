@@ -1,5 +1,6 @@
 package com.github.mati1979.play.hysterix;
 
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import play.libs.F;
@@ -23,7 +24,7 @@ public class HysterixRequestLog {
 
     private final HysterixContext hysterixContext;
 
-    private ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+    private final static ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE = Executors.newSingleThreadScheduledExecutor();
 
     public HysterixRequestLog(final HysterixContext hysterixContext) {
         this.hysterixContext = hysterixContext;
@@ -34,7 +35,7 @@ public class HysterixRequestLog {
 
     private void scheduleTimerTask() {
         final long timeoutInMs = hysterixContext.getHysterixSettings().getLogRequestStatisticsTimeoutMs();
-        scheduledExecutorService.schedule(() -> notifyPromises(), timeoutInMs, TimeUnit.MILLISECONDS);
+        SCHEDULED_EXECUTOR_SERVICE.schedule(() -> notifyPromises(), timeoutInMs, TimeUnit.MILLISECONDS);
     }
 
     public void addExecutedCommand(final HysterixCommand<?> command) {
@@ -60,7 +61,8 @@ public class HysterixRequestLog {
 
     public F.Promise<Collection<HysterixCommand<?>>> executedCommands() {
         if (!hysterixContext.getHysterixSettings().isLogRequestStatistics()) {
-            throw new HysterixException("Cannot inspect log, you have to enable request log inspect via hysterix settings");
+            logger.warn("Cannot inspect log - isLogRequestStatistics is disabled!");
+            return F.Promise.pure(Lists.newArrayList());
         }
 
         final F.RedeemablePromise<Collection<HysterixCommand<?>>> promise = F.RedeemablePromise.empty();

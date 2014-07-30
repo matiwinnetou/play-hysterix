@@ -39,6 +39,6 @@ public interface HysterixGlobalStatistics {
 
     long getAverageExecutionTimePercentile(double quantile);
 
-    void notify(final HysterixResponseMetadata metadata);
+    void notify(HysterixResponseMetadata metadata);
 
 }
