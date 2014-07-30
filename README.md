@@ -72,6 +72,7 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - 0.2.7 - (Play 2.3.x only) changed remote calls from warn to error and improved concurrency handling
 - 0.2.8 - (Play 2.3.x only) fixed a small bug in HysterixCommand, replaced new Timer, which created a new thread on each request with ScheduledExecutorService, moved to sbt release plugin, introduced runtime HysterixException
 - 0.2.9 - (Play 2.3.x only) upgrade to latest yammer metrics-core library
+- 0.2.10 - (Play 2.3.x only) major PROD bug fix causing a thread lead in case RequestInspectLog was enabled (default)
 
 ## TODO
 - graphite reporter
