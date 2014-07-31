@@ -30,7 +30,7 @@ status: in development, use at own risk (interface may change and may be buggy),
 
 http://repo1.maven.org/maven2/pl/matisoft/play-hysterix_2.10/
 
-Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.9"
+Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.10"
 
 ## Features:
 - graceful handling support for commands, also as a Promise (i.e. remote service call or plain value)
