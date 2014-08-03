@@ -5,28 +5,22 @@
 Inspired by Hystrix, this is a library for play framework to implement scalability patterns.
 
 Netflix Hystrix is a library which implements number of distributed patterns such as graceful fallback, circuit breaker.
-Unfortunately, the library binds to rx-java (Observable) and for Play framework conversion to promises or adapter to
-Enumerator is a non trivial task. In addition hystrix has been developed initially with synchronous clients in mind and then
-that was extended to async client, in turn this mean API is suffering from being bound to sync access in number of places.
-Moreover, hystrix internally uses many ThreadLocal variables to store request state. We do not share a vision that
-using thread locals neither necessary nor recommended. In addition it was for author of this library a big surprise how HttpRequestLog is initialized in hysterix,
-basically that without invoking shutdown method after initialize memory leaks could occur. Instead hysterix is a bit more verbose, one
-has to create manually or via AOP or filter HysterixContext, which will be passed to library and eventually garbage collected. 
 
-In addition, contrary to Hystrix, this library does not use request collapers from hystrix (neither batch size nor time collapsing). This concept we believe
-is ultimately broken and anything based on time or size may leak through cache. Hysterix uses lazy scala promises and only invokes promise onCompleted
-or onFailure in case real response has been returned from the server.
-
-However, this library does not want to reinvent the wheel and initial plan is to be compatible with hystrix-dashboard json api, so that results can be displayed using Netlix UI tools. 
+Number of notable differences comparing to Netflix Hystrix:
+- library does not bind to RxJava, which may not be desired for play users
+- hystrix has been developed initially with synchronous clients and despite the fact that there is a HystrixObservableCommand, others parts of library assume sync access
+- hystrix internally uses many ThreadLocal variables to store request state, alternatively hysterix passes HysterixRequestContext, which is more verbose but more secure in terms of memory cleanup (GC will automatically collect context object)
+- hysterix does not user a concept from hystrix - request collapsers (neither batch nor time collapsing), this concept is not ideal because anything based on time or size may leak through cache, it is hard to predict how fast number of requests will be done, hysterix uses redeemable promises as a way to realize request based cache 
+- library is compatible with Hystrix dashboard, which is a nice UI to visualize response times
 
 ## Support
 
 - Support for Play for Java 2.3.x and binary for Scala 2.10.x (should work in Play Scala version as well). 
 Scala 2.11.x binary on request.
-- Java 8 is required at the moment
+- As this library is written in Java 8, it is required at the moment
 
 ## Status 
-status: in development, use at own risk (interface may change and may be buggy), a few initial versions pushed to maven central at:
+status: used in production, interface stable, only additions planned
 
 http://repo1.maven.org/maven2/pl/matisoft/play-hysterix_2.10/
 
@@ -38,7 +32,7 @@ Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.10"
 - async access to request cache for logging request metrics (timeout based)
 - support for global metrics for all commands (HysterixGlobalStatistics) and streaming some data to hysterix-dashboard (HysterixController)
 - safe - no memory leaks possibility by design, hysterix request context should be garbage collected after each http request
-- time windowed and global statistics for requests (master)
+- time windowed and global statistics for requests 
 
 ## Authors:
 - Mateusz Szczap
@@ -72,7 +66,7 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - 0.2.7 - (Play 2.3.x only) changed remote calls from warn to error and improved concurrency handling
 - 0.2.8 - (Play 2.3.x only) fixed a small bug in HysterixCommand, replaced new Timer, which created a new thread on each request with ScheduledExecutorService, moved to sbt release plugin, introduced runtime HysterixException
 - 0.2.9 - (Play 2.3.x only) upgrade to latest yammer metrics-core library
-- 0.2.10 - (Play 2.3.x only) major PROD bug fix causing a thread lead in case RequestInspectLog was enabled (default)
+- 0.2.10 - (Play 2.3.x only) major PROD bug fix causing a thread lead in case RequestInspectLog was enabled (default setting)
 
 ## TODO
 - graphite reporter
