@@ -7,17 +7,16 @@ Inspired by Hystrix, this is a library for play framework to implement scalabili
 Netflix Hystrix is a library which implements number of distributed patterns such as graceful fallback, circuit breaker.
 
 Number of notable differences comparing to Netflix Hystrix:
-- library does not bind to RxJava, which may not be desired for play users
+- library does not bind to RxJava, which may not be desired for play users, that could still be provided by a contrib module
 - hystrix has been developed initially with synchronous clients and despite the fact that there is a HystrixObservableCommand, others parts of library assume sync access
 - hystrix internally uses many ThreadLocal variables to store request state, alternatively hysterix passes HysterixRequestContext, which is more verbose but more secure in terms of memory cleanup (GC will automatically collect context object)
 - hysterix does not user a concept from hystrix - request collapsers (neither batch nor time collapsing), this concept is not ideal because anything based on time or size may leak through cache, it is hard to predict how fast number of requests will be done, hysterix uses redeemable promises as a way to realize request based cache 
-- library is compatible with Hystrix dashboard, which is a nice UI to visualize response times
+- library is compatible with Hystrix dashboard, which is a nice UI to visualize hystrix metrics
 
-## Support
+## Requirements
 
-- Support for Play for Java 2.3.x and binary for Scala 2.10.x (should work in Play Scala version as well). 
-Scala 2.11.x binary on request.
-- As this library is written in Java 8, it is required at the moment
+- Play for Java 2.3.x and binary available for Scala 2.10.x (cross compilation for Scala 2.11.x binary on request).
+- Java 8
 
 ## Status 
 status: used in production, interface stable, only additions planned
@@ -33,6 +32,7 @@ Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.10"
 - support for global metrics for all commands (HysterixGlobalStatistics) and streaming some data to hysterix-dashboard (HysterixController)
 - safe - no memory leaks possibility by design, hysterix request context should be garbage collected after each http request
 - time windowed and global statistics for requests 
+- circuit breaker support
 
 ## Authors:
 - Mateusz Szczap
@@ -66,7 +66,7 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - 0.2.7 - (Play 2.3.x only) changed remote calls from warn to error and improved concurrency handling
 - 0.2.8 - (Play 2.3.x only) fixed a small bug in HysterixCommand, replaced new Timer, which created a new thread on each request with ScheduledExecutorService, moved to sbt release plugin, introduced runtime HysterixException
 - 0.2.9 - (Play 2.3.x only) upgrade to latest yammer metrics-core library
-- 0.2.10 - (Play 2.3.x only) major PROD bug fix causing a thread lead in case RequestInspectLog was enabled (default setting)
+- 0.2.10 - (Play 2.3.x only) major PROD bug fix causing a thread leak in case RequestInspectLog was enabled (default setting)
 
 ## TODO
 - graphite reporter
