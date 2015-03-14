@@ -23,7 +23,7 @@ status: used in production, interface stable, only additions planned
 
 http://repo1.maven.org/maven2/pl/matisoft/play-hysterix_2.10/
 
-Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.10"
+Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.11"
 
 ## Features:
 - graceful handling support for commands, also as a Promise (i.e. remote service call or plain value)
@@ -67,6 +67,7 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - 0.2.8 - (Play 2.3.x only) fixed a small bug in HysterixCommand, replaced new Timer, which created a new thread on each request with ScheduledExecutorService, moved to sbt release plugin, introduced runtime HysterixException
 - 0.2.9 - (Play 2.3.x only) upgrade to latest yammer metrics-core library
 - 0.2.10 - (Play 2.3.x only) major PROD bug fix causing a thread leak in case RequestInspectLog was enabled (default setting)
+- 0.2.11 - (Play 2.3.x only) more memory efficient + fixed race conditions in generating statistics (not dangerous, only we were getting incorrect data)
 
 ## TODO
 - graphite reporter
@@ -76,4 +77,5 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - rewrite to Scala and use Scala future, enable Java API to work
 - think over how to detect an end to web request -> in HysterixRequestLog (is really tricky, since we don't know number of requests (commands) upfront)
 - JavaDocs
+- parallel requests support, e.g. two services at the same time and faster response wins
 - Unit tests
