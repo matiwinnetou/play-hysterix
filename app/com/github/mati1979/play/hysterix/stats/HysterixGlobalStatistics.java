@@ -1,6 +1,6 @@
 package com.github.mati1979.play.hysterix.stats;
 
-import com.codahale.metrics.Snapshot;
+import com.codahale.metrics.Reservoir;
 import com.github.mati1979.play.hysterix.HysterixResponseMetadata;
 
 public interface HysterixGlobalStatistics {
@@ -33,7 +33,7 @@ public interface HysterixGlobalStatistics {
 
     int getErrorPercentage();
 
-    Snapshot dumpAverageExecutionTimeSnapshot();
+    Reservoir getAverageExecutionTimeReservoir();
 
     void notify(HysterixResponseMetadata metadata);
 

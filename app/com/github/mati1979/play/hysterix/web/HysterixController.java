@@ -73,7 +73,7 @@ public class HysterixController extends Controller {
 
             final HysterixSettings hysterixSettings = hysterixContext.getHysterixSettings();
             final RollingHysterixGlobalStatistics timeWindowedMetrics = event.getTimeWindowedMetrics();
-            final Snapshot timeWindowedSnapshot = timeWindowedMetrics.dumpAverageExecutionTimeSnapshot();
+            final Snapshot timeWindowedSnapshot = timeWindowedMetrics.getAverageExecutionTimeReservoir().getSnapshot();
 
             data.put("type", "HystrixCommand");
             data.put("name", event.getEvent().getHysterixCommand().getCommandKey());

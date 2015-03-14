@@ -1,7 +1,6 @@
 package com.github.mati1979.play.hysterix.stats;
 
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Snapshot;
+import com.codahale.metrics.Reservoir;
 import com.github.mati1979.play.hysterix.HysterixResponseMetadata;
 import com.github.mati1979.play.hysterix.HysterixSettings;
 
@@ -12,42 +11,42 @@ public abstract class AbstractHysterixGlobalStatistics implements HysterixGlobal
     protected final HysterixSettings hysterixSettings;
     protected final String key;
 
-    protected Histogram countFailure;
-    protected Histogram countResponsesFromCache;
-    protected Histogram countFallbackSuccess;
-    protected Histogram countFallbackFailure;
-    protected Histogram countShortCircuited;
-    protected Histogram countExceptionsThrown;
-    protected Histogram countSuccess;
-    protected Histogram countTimeout;
+    protected Reservoir countFailure;
+    protected Reservoir countResponsesFromCache;
+    protected Reservoir countFallbackSuccess;
+    protected Reservoir countFallbackFailure;
+    protected Reservoir countShortCircuited;
+    protected Reservoir countExceptionsThrown;
+    protected Reservoir countSuccess;
+    protected Reservoir countTimeout;
 
-    protected Histogram averageExecutionTime;
+    protected Reservoir averageExecutionTime;
 
     protected AbstractHysterixGlobalStatistics(final HysterixSettings hysterixSettings, final String key) {
         this.hysterixSettings = hysterixSettings;
         this.key = key;
-        countFailure = createHistogram();
-        countResponsesFromCache = createHistogram();
-        countFallbackSuccess = createHistogram();
-        countFallbackFailure = createHistogram();
-        countShortCircuited = createHistogram();
-        countExceptionsThrown = createHistogram();
-        countSuccess = createHistogram();
-        countTimeout = createHistogram();
-        averageExecutionTime = createHistogram();
+        countFailure = createReservoir();
+        countResponsesFromCache = createReservoir();
+        countFallbackSuccess = createReservoir();
+        countFallbackFailure = createReservoir();
+        countShortCircuited = createReservoir();
+        countExceptionsThrown = createReservoir();
+        countSuccess = createReservoir();
+        countTimeout = createReservoir();
+        averageExecutionTime = createReservoir();
     }
 
     @Override
     public synchronized void clearStats() {
-        countFailure = createHistogram();
-        countResponsesFromCache = createHistogram();
-        countFallbackSuccess = createHistogram();
-        countFallbackFailure = createHistogram();
-        countShortCircuited = createHistogram();
-        countExceptionsThrown = createHistogram();
-        countSuccess = createHistogram();
-        countTimeout = createHistogram();
-        averageExecutionTime = createHistogram();
+        countFailure = createReservoir();
+        countResponsesFromCache = createReservoir();
+        countFallbackSuccess = createReservoir();
+        countFallbackFailure = createReservoir();
+        countShortCircuited = createReservoir();
+        countExceptionsThrown = createReservoir();
+        countSuccess = createReservoir();
+        countTimeout = createReservoir();
+        averageExecutionTime = createReservoir();
     }
 
     @Override
@@ -100,42 +99,42 @@ public abstract class AbstractHysterixGlobalStatistics implements HysterixGlobal
 
     @Override
     public long getShortCircuitedCount() {
-        return countShortCircuited.getCount();
+        return countShortCircuited.size();
     }
 
     @Override
     public long getSuccessCount() {
-        return countSuccess.getCount();
+        return countSuccess.size();
     }
 
     @Override
     public long getFailureCount() {
-        return countFailure.getCount();
+        return countFailure.size();
     }
 
     @Override
     public long getResponsesFromCacheCount() {
-        return countResponsesFromCache.getCount();
+        return countResponsesFromCache.size();
     }
 
     @Override
     public long getFallbackSuccessCount() {
-        return countFallbackSuccess.getCount();
+        return countFallbackSuccess.size();
     }
 
     @Override
     public long getFallbackFailureCount() {
-        return countFallbackFailure.getCount();
+        return countFallbackFailure.size();
     }
 
     @Override
     public long getExceptionsThrownCount() {
-        return countExceptionsThrown.getCount();
+        return countExceptionsThrown.size();
     }
 
     @Override
     public long getTimeoutCount() {
-        return countTimeout.getCount();
+        return countTimeout.size();
     }
 
     @Override
@@ -149,11 +148,11 @@ public abstract class AbstractHysterixGlobalStatistics implements HysterixGlobal
         return errorPercentage;
     }
 
-    public Snapshot dumpAverageExecutionTimeSnapshot() {
-        return averageExecutionTime.getSnapshot();
+    public Reservoir getAverageExecutionTimeReservoir() {
+        return averageExecutionTime;
     }
 
-    protected abstract Histogram createHistogram();
+    protected abstract Reservoir createReservoir();
 
     @Override
     public String toString() {

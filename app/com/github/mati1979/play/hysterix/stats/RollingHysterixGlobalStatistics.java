@@ -1,6 +1,6 @@
 package com.github.mati1979.play.hysterix.stats;
 
-import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.SlidingTimeWindowReservoir;
 import com.github.mati1979.play.hysterix.HysterixSettings;
 
@@ -12,10 +12,8 @@ public class RollingHysterixGlobalStatistics extends AbstractHysterixGlobalStati
         super(hysterixSettings, key);
     }
 
-    protected Histogram createHistogram() {
-        final long rollingTimeWindowIntervalInMs = hysterixSettings.getRollingTimeWindowIntervalInMs();
-
-        return new Histogram(new SlidingTimeWindowReservoir(rollingTimeWindowIntervalInMs, TimeUnit.MILLISECONDS));
+    protected Reservoir createReservoir() {
+        return new SlidingTimeWindowReservoir(hysterixSettings.getRollingTimeWindowIntervalInMs(), TimeUnit.MILLISECONDS);
     }
 
 }
