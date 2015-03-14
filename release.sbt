@@ -3,7 +3,6 @@ import ReleaseStateTransformations._
 import ReleasePlugin._
 import ReleaseKeys._
 
-import com.typesafe.sbt.SbtPgp.PgpKeys.publishSigned
 import xerial.sbt.Sonatype.SonatypeKeys.sonatypeReleaseAll
 
 releaseSettings
@@ -30,7 +29,7 @@ lazy val publishSignedArtifacts = ReleaseStep(
 lazy val publishSignedArtifactsAction = { st: State =>
   val extracted = Project.extract(st)
   val ref = extracted.get(thisProjectRef)
-  extracted.runAggregated(publishSigned in Global in ref, st)
+  extracted.runAggregated(PgpKeys.publishSigned in Global in ref, st)
 }
 
 lazy val sonatypeReleaseReleaseStep = releaseTask(sonatypeReleaseAll in ThisProject)
