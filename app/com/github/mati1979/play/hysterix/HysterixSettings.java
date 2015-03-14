@@ -1,21 +1,27 @@
 package com.github.mati1979.play.hysterix;
 
+import java.util.concurrent.TimeUnit;
+
 public class HysterixSettings {
 
     private boolean fallbackEnabled = true;
     private boolean requestCacheEnabled = true;
 
     private boolean logRequestStatistics = true;
-    private int logRequestStatisticsTimeoutMs = 5000; //5 seconds
+    private long logRequestStatisticsTimeoutMs = TimeUnit.SECONDS.toMillis(5);
 
     private boolean logGlobalStatistics = true;
 
-    private long rollingTimeWindowIntervalInMs = 10000; // 10 seconds
+    private long rollingTimeWindowIntervalInMs = TimeUnit.SECONDS.toMillis(10);
 
     private boolean circuitBreakerEnabled = true;
+
     private boolean circuitBreakerForceClosed = false;
-    private long circuitBreakerSleepWindowInMilliseconds = 5000;
+
+    private long circuitBreakerSleepWindowInMilliseconds =  TimeUnit.SECONDS.toMillis(5);
+
     private int circuitBreakerErrorThresholdPercentage = 50;
+
     private int circuitBreakerRequestVolumeThreshold = 20;
 
     public boolean isLogGlobalStatistics() {
@@ -58,7 +64,7 @@ public class HysterixSettings {
         return circuitBreakerForceClosed;
     }
 
-    public int getLogRequestStatisticsTimeoutMs() {
+    public long getLogRequestStatisticsTimeoutMs() {
         return logRequestStatisticsTimeoutMs;
     }
 

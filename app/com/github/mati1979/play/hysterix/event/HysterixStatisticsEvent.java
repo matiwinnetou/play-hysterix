@@ -3,9 +3,6 @@ package com.github.mati1979.play.hysterix.event;
 import com.github.mati1979.play.hysterix.stats.GlobalHysterixGlobalStatistics;
 import com.github.mati1979.play.hysterix.stats.RollingHysterixGlobalStatistics;
 
-/**
- * Created by mati on 06/06/2014.
- */
 public class HysterixStatisticsEvent {
 
     private final HysterixCommandEvent event;

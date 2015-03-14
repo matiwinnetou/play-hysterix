@@ -5,16 +5,13 @@ import play.libs.F;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * Created by mati on 24/05/2014.
- */
 public class HysterixHttpRequestsCache<T> {
 
     private static final play.Logger.ALogger logger = play.Logger.of(HysterixHttpRequestsCache.class);
 
     private final String requestCacheKey;
 
-    private AtomicReference<Optional<F.Promise<T>>> promise = new AtomicReference<>(Optional.empty());
+    private final AtomicReference<Optional<F.Promise<T>>> promise = new AtomicReference<>(Optional.empty());
 
     public HysterixHttpRequestsCache(final String requestCacheKey) {
         this.requestCacheKey = requestCacheKey;

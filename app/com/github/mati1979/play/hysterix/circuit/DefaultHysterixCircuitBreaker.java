@@ -6,9 +6,6 @@ import com.github.mati1979.play.hysterix.stats.RollingHysterixGlobalStatistics;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Created by mati on 17/06/2014.
- */
 public class DefaultHysterixCircuitBreaker implements HysterixCircuitBreaker {
 
     private final String commandGroupKey;

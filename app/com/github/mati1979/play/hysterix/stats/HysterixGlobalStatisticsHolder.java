@@ -12,9 +12,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Created by mszczap on 01.06.14.
- */
 public class HysterixGlobalStatisticsHolder {
 
     private final Map<String, RollingHysterixGlobalStatistics> rollingCache = new ConcurrentHashMap<>();
@@ -67,6 +64,7 @@ public class HysterixGlobalStatisticsHolder {
             final HysterixCommand hysterixCommand = event.getHysterixCommand();
             final RollingHysterixGlobalStatistics timeWindowedStats = getTimeWindowedMetrics(hysterixCommand);
             final GlobalHysterixGlobalStatistics globalStats = getGlobalMetrics(hysterixCommand);
+
             if (hysterixSettings.isLogGlobalStatistics()) {
                 timeWindowedStats.notify(event.getHysterixCommand().getMetadata());
                 globalStats.notify(event.getHysterixCommand().getMetadata());

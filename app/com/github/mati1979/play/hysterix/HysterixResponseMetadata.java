@@ -6,9 +6,6 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by mszczap on 27.05.14.
- */
 public class HysterixResponseMetadata {
 
     protected List<HysterixEventType> executionEvents = Lists.newArrayList();

@@ -1,14 +1,12 @@
 package com.github.mati1979.play.hysterix.stats;
 
 import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Snapshot;
 import com.github.mati1979.play.hysterix.HysterixResponseMetadata;
 import com.github.mati1979.play.hysterix.HysterixSettings;
 
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by mati on 28/06/2014.
- */
 public abstract class AbstractHysterixGlobalStatistics implements HysterixGlobalStatistics {
 
     protected final HysterixSettings hysterixSettings;
@@ -40,7 +38,7 @@ public abstract class AbstractHysterixGlobalStatistics implements HysterixGlobal
     }
 
     @Override
-    public void clearStats() {
+    public synchronized void clearStats() {
         countFailure = createHistogram();
         countResponsesFromCache = createHistogram();
         countFallbackSuccess = createHistogram();
@@ -57,7 +55,7 @@ public abstract class AbstractHysterixGlobalStatistics implements HysterixGlobal
         return key;
     }
 
-    public void notify(final HysterixResponseMetadata metadata) {
+    public synchronized void notify(final HysterixResponseMetadata metadata) {
         if (metadata.isSuccessfulExecution()) {
             countSuccess.update(1);
         }
@@ -86,62 +84,62 @@ public abstract class AbstractHysterixGlobalStatistics implements HysterixGlobal
     }
 
     @Override
-    public long getErrorCount() {
+    public synchronized long getErrorCount() {
         return getFailureCount() + getTimeoutCount() + getExceptionsThrownCount() + getShortCircuitedCount();
     }
 
     @Override
-    public long getTotalCount() {
+    public synchronized long getTotalCount() {
         return getSuccessWithoutRequestCacheCount() + getFailureCount() + getTimeoutCount() + getExceptionsThrownCount() + getShortCircuitedCount();
     }
 
     @Override
-    public long getSuccessWithoutRequestCacheCount() {
+    public synchronized long getSuccessWithoutRequestCacheCount() {
         return getSuccessCount() - getResponsesFromCacheCount();
     }
 
     @Override
     public long getShortCircuitedCount() {
-        return countShortCircuited.getSnapshot().size();
+        return countShortCircuited.getCount();
     }
 
     @Override
     public long getSuccessCount() {
-        return countSuccess.getSnapshot().size();
+        return countSuccess.getCount();
     }
 
     @Override
     public long getFailureCount() {
-        return countFailure.getSnapshot().size();
+        return countFailure.getCount();
     }
 
     @Override
     public long getResponsesFromCacheCount() {
-        return countResponsesFromCache.getSnapshot().size();
+        return countResponsesFromCache.getCount();
     }
 
     @Override
     public long getFallbackSuccessCount() {
-        return countFallbackSuccess.getSnapshot().size();
+        return countFallbackSuccess.getCount();
     }
 
     @Override
     public long getFallbackFailureCount() {
-        return countFallbackFailure.getSnapshot().size();
+        return countFallbackFailure.getCount();
     }
 
     @Override
     public long getExceptionsThrownCount() {
-        return countExceptionsThrown.getSnapshot().size();
+        return countExceptionsThrown.getCount();
     }
 
     @Override
     public long getTimeoutCount() {
-        return countTimeout.getSnapshot().size();
+        return countTimeout.getCount();
     }
 
     @Override
-    public int getErrorPercentage() {
+    public synchronized int getErrorPercentage() {
         int errorPercentage = 0;
 
         if (getTotalCount() > 0) {
@@ -151,14 +149,8 @@ public abstract class AbstractHysterixGlobalStatistics implements HysterixGlobal
         return errorPercentage;
     }
 
-    @Override
-    public long getAverageExecutionTime() {
-        return Math.round(averageExecutionTime.getSnapshot().getMean());
-    }
-
-    @Override
-    public long getAverageExecutionTimePercentile(final double quantile) {
-        return Math.round(averageExecutionTime.getSnapshot().getValue(quantile));
+    public Snapshot dumpAverageExecutionTimeSnapshot() {
+        return averageExecutionTime.getSnapshot();
     }
 
     protected abstract Histogram createHistogram();

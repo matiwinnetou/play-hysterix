@@ -6,9 +6,6 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.SubscriberExceptionContext;
 import com.google.common.eventbus.SubscriberExceptionHandler;
 
-/**
- * Created by mszczap on 08.06.14.
- */
 public class HysterixContext {
 
     private static final play.Logger.ALogger logger = play.Logger.of(HysterixContext.class);

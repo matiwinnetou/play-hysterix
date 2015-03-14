@@ -9,7 +9,7 @@ organization := "pl.matisoft"
 
 name := "play-hysterix"
 
-scalaVersion := "2.10.4"
+scalaVersion := "2.10.5"
 
 //crossScalaVersions := Seq("2.10.4", "2.11.1")
 
@@ -20,9 +20,11 @@ val commonSettings = Seq(
     parallelExecution := true
 )
 
-lazy val main = (project in file(".")).settings(commonSettings:_*).enablePlugins(PlayJava)
+lazy val main = (project in file("."))
+                .settings(commonSettings:_*)
+                .enablePlugins(PlayJava)
 
-libraryDependencies += "com.codahale.metrics" % "metrics-core" % "3.0.2"
+libraryDependencies += "io.dropwizard.metrics" % "metrics-core" % "3.1.1"
 
 libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % Test
 
@@ -50,4 +52,4 @@ pomExtra := (
           <name>Mateusz Szczap</name>
           <url>https://github.com/mati1979</url>
         </developer>
-    </developers>)
+  </developers>)

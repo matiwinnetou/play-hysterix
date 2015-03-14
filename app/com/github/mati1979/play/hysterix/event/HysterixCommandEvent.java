@@ -2,9 +2,6 @@ package com.github.mati1979.play.hysterix.event;
 
 import com.github.mati1979.play.hysterix.HysterixCommand;
 
-/**
- * Created by mati on 06/06/2014.
- */
 public class HysterixCommandEvent {
 
     private final HysterixCommand command;

@@ -18,9 +18,9 @@ public class HysterixRequestLog {
 
     private static final Logger logger = LoggerFactory.getLogger(HysterixRequestLog.class);
 
-    private LinkedBlockingQueue<HysterixCommand<?>> executedCommands = new LinkedBlockingQueue<>(MAX_STORAGE);
+    private final LinkedBlockingQueue<HysterixCommand<?>> executedCommands = new LinkedBlockingQueue<>(MAX_STORAGE);
 
-    private LinkedBlockingQueue<F.RedeemablePromise<Collection<HysterixCommand<?>>>> promises = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<F.RedeemablePromise<Collection<HysterixCommand<?>>>> promises = new LinkedBlockingQueue<>();
 
     private final HysterixContext hysterixContext;
 

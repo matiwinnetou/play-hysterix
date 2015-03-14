@@ -1,10 +1,8 @@
 package com.github.mati1979.play.hysterix.stats;
 
+import com.codahale.metrics.Snapshot;
 import com.github.mati1979.play.hysterix.HysterixResponseMetadata;
 
-/**
- * Created by mati on 28/06/2014.
- */
 public interface HysterixGlobalStatistics {
 
     void clearStats();
@@ -35,9 +33,7 @@ public interface HysterixGlobalStatistics {
 
     int getErrorPercentage();
 
-    long getAverageExecutionTime();
-
-    long getAverageExecutionTimePercentile(double quantile);
+    Snapshot dumpAverageExecutionTimeSnapshot();
 
     void notify(HysterixResponseMetadata metadata);
 

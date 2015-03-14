@@ -2,9 +2,6 @@ package com.github.mati1979.play.hysterix;
 
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by mszczap on 27.05.14.
- */
 public class HysterixResponse<T> {
 
     private T response;

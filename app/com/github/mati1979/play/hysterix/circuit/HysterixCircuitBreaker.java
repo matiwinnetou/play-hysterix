@@ -1,8 +1,5 @@
 package com.github.mati1979.play.hysterix.circuit;
 
-/**
- * Created by mati on 17/06/2014.
- */
 public interface HysterixCircuitBreaker {
 
     public static final Stub NULL = new Stub();
