@@ -1,5 +1,7 @@
 #play-hysterix
 
+[![Build Status](https://travis-ci.org/matiwinnetou/play-hysterix.svg?branch=master)](https://travis-ci.org/matiwinnetou/play-hysterix)
+
 ## Intro
 
 Inspired by Hystrix, this is a library for play framework to implement scalability patterns.
