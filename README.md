@@ -17,15 +17,16 @@ Number of notable differences comparing to Netflix Hystrix:
 
 ## Requirements
 
-- Play for Java 2.3.x and binary available for Scala 2.10.x (cross compilation for Scala 2.11.x binary on request).
+- Play for Java 2.4.x and binary available for Scala 2.10.x and 2.11.x
 - Java 8
 
 ## Status 
 status: used in production, interface stable, only additions planned
 
 http://repo1.maven.org/maven2/pl/matisoft/play-hysterix_2.10/
+http://repo1.maven.org/maven2/pl/matisoft/play-hysterix_2.11/
 
-Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.11"
+Sbt: "pl.matisoft" %% "play-hysterix" % "0.2.12"
 
 ## Features:
 - graceful handling support for commands, also as a Promise (i.e. remote service call or plain value)
@@ -70,6 +71,7 @@ MOBILE_SVC_API.FetchMakesCommand - 100 ms - [SUCCESS, RESPONSE_FROM_CACHE] - htt
 - 0.2.9 - (Play 2.3.x only) upgrade to latest yammer metrics-core library
 - 0.2.10 - (Play 2.3.x only) major PROD bug fix causing a thread leak in case RequestInspectLog was enabled (default setting)
 - 0.2.11 - (Play 2.3.x only) more memory efficient + fixed race conditions in generating statistics (not dangerous, only we were getting incorrect data)
+- 0.2.12 - (Play 2.4.x only) bump up dependencies and scala version
 
 ## TODO
 - graphite reporter
