@@ -9,9 +9,9 @@ organization := "pl.matisoft"
 
 name := "play-hysterix"
 
-scalaVersion := "2.10.5"
+scalaVersion := "2.10.6"
 
-//crossScalaVersions := Seq("2.10.4", "2.11.1")
+crossScalaVersions := Seq("2.10.6", "2.11.7")
 
 publishMavenStyle := true
 
@@ -24,9 +24,9 @@ lazy val main = (project in file("."))
                 .settings(commonSettings:_*)
                 .enablePlugins(PlayJava)
 
-libraryDependencies += "io.dropwizard.metrics" % "metrics-core" % "3.1.1"
+libraryDependencies += "io.dropwizard.metrics" % "metrics-core" % "3.1.2"
 
-libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % Test
+libraryDependencies += "org.mockito" % "mockito-all" % "1.10.19" % Test
 
 publishTo := {
     val nexus = "https://oss.sonatype.org/"

@@ -1,35 +1,24 @@
-import sbtrelease._
-import ReleaseStateTransformations._
-import ReleasePlugin._
-import ReleaseKeys._
+import ReleaseTransformations._
 
-import xerial.sbt.Sonatype.SonatypeKeys.sonatypeReleaseAll
+releaseCrossBuild := true
 
-releaseSettings
-
-sonatypeSettings
-
-releaseProcess := Seq(
+releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,
   inquireVersions,
+  runClean,
   runTest,
   setReleaseVersion,
   commitReleaseVersion,
-  publishSignedArtifacts,
-  sonatypeReleaseReleaseStep,
+  tagRelease,
+  ReleaseStep(
+    action = { state =>
+      val extracted = Project extract state
+      extracted.runAggregated(PgpKeys.publishSigned in Global in extracted.get(thisProjectRef), state)
+    },
+    enableCrossBuild = true
+  ),
   setNextVersion,
   commitNextVersion,
+  ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
   pushChanges
 )
-
-lazy val publishSignedArtifacts = ReleaseStep(
-  action = publishSignedArtifactsAction,
-  enableCrossBuild = true)
-
-lazy val publishSignedArtifactsAction = { st: State =>
-  val extracted = Project.extract(st)
-  val ref = extracted.get(thisProjectRef)
-  extracted.runAggregated(PgpKeys.publishSigned in Global in ref, st)
-}
-
-lazy val sonatypeReleaseReleaseStep = releaseTask(sonatypeReleaseAll in ThisProject)
