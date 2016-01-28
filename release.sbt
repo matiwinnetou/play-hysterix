@@ -10,15 +10,9 @@ releaseProcess := Seq[ReleaseStep](
   setReleaseVersion,
   commitReleaseVersion,
   tagRelease,
-  ReleaseStep(
-    action = { state =>
-      val extracted = Project extract state
-      extracted.runAggregated(PgpKeys.publishSigned in Global in extracted.get(thisProjectRef), state)
-    },
-    enableCrossBuild = true
-  ),
+  ReleaseStep(action = Command.process("publishSigned", _), enableCrossBuild = true),
   setNextVersion,
   commitNextVersion,
-  ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
+  ReleaseStep(action = Command.process("sonatypeReleaseAll", _), enableCrossBuild = true),
   pushChanges
 )
